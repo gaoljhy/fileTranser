@@ -1,0 +1,98 @@
+{
+    "powermode.enabled": true,
+
+    "powermode.shake.enabled": false,
+
+    "powermode.explosions.customExplosions": [
+        "https://media.giphy.com/media/xUA7aXJY46jN2P6gGk/giphy.gif",
+        "https://media.giphy.com/media/l0IykOPjEJopboxWw/giphy.gif",
+        "https://media.giphy.com/media/3o7btLYqcZhUb2GP16/giphy.gif"
+    ],
+    "powermode.explosions.explosionOrder": "sequential",
+    "powermode.explosions.size": 12,
+    "powermode.explosions.frequency": 2,
+    "powermode.maxExplosions": 10,
+    "powermode.explosions.offset": 0.215,
+    "powermode.explosions.customCss": {
+        "mix-blend-mode": "color-dodge"
+    },
+    "powermode.explosions.gifMode": "restart",
+    "powermode.explosions.duration": 1000,
+    "powermode.explosions.backgroundMode": "mask",
+    "todohighlight.isEnable": true,
+    "todohighlight.isCaseSensitive": true,
+    "todohighlight.keywords": [
+        "DEBUG:",
+        "REVIEW:",
+        {
+            "text": "NOTE:",
+            "color": "#ff0000",
+            "backgroundColor": "yellow",
+            "overviewRulerColor": "grey"
+        },
+        {
+            "text": "HACK:",
+            "color": "#000",
+            "isWholeLine": false,
+        },
+        {
+            "text": "TODO:",
+            "color": "red",
+            "border": "1px solid red",
+            "borderRadius": "2px", //NOTE: using borderRadius along with `border` or you will see nothing change
+            "backgroundColor": "rgba(0,0,0,.2)",
+            //other styling properties goes here ... 
+        }
+    ],
+    // "todohighlight.keywordsPattern": "TODO:|FIXME:|\\(([^)]+)\\)", //highlight `TODO:`,`FIXME:` or content between parentheses
+    "todohighlight.defaultStyle": {
+        "color": "red",
+        "backgroundColor": "#ffab00",
+        "overviewRulerColor": "#ffab00",
+        "cursor": "pointer",
+        "border": "1px solid #eee",
+        "borderRadius": "2px",
+        "isWholeLine": true,
+        //other styling properties goes here ... 
+    },
+    "todohighlight.include": [
+        // "**/*.js",
+        // "**/*.jsx",
+        // "**/*.ts",
+        // "**/*.tsx",
+        "**/*.html",
+        // "**/*.php",
+        // "**/*.css",
+        // "**/*.scss",
+        "**/*.py",
+        "**/*.md",
+        "**/TODO"
+    ],
+    "todohighlight.exclude": [
+        "**/node_modules/**",
+        "**/bower_components/**",
+        "**/dist/**",
+        "**/build/**",
+        "**/.vscode/**",
+        "**/.github/**",
+        "**/_output/**",
+        "**/*.min.*",
+        "**/*.map",
+        "**/.next/**",
+        "**/folder/**",
+        "**/migrations/**",
+        "**/__pycache__/**"
+        
+    ],
+    "todohighlight.maxFilesForSearch": 5120,
+    "todohighlight.toggleURI": false,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.autopep8"
+    },
+    "python.formatting.provider": "none",
+    "python.analysis.extraPaths": [
+        "./apps"
+    ]
+    
+    
+}

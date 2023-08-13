@@ -1,0 +1,4503 @@
+
+  import datetime
+  from django.db import migrations, models
+  class Migration(migrations.Migration):
+      initial = True
+
+      dependencies = [
+      ]
+      operations = [
+          migrations.CreateModel(
+              name='ApproveLog',
+              fields=[
+                  ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                  ('fileno', models.CharField(max_length=18, verbose_name='文件编号')),
+                  ('filename', models.CharField(max_length=200, verbose_name='文件名称')),
+                  ('owner', models.CharField(max_length=30, verbose_name='文件所属用户')),
+                  ('add_time', models.DateTimeField(verbose_name='上传时间')),
+                  ('isapprove', models.CharField(choices=[('1', '已审批'), ('2', '已驳回')], max_length=1, verbose_name='终审')),
+                  ('approve_time', models.DateTimeField(default=datetime.datetime.now, verbose_name='审批时间')),
+              ],
+              options={
+                  'verbose_name': '文件审批日志',
+                  'verbose_name_plural': '文件审批日志',
+              },
+          ),
+          migrations.CreateModel(
+              name='File',
+              fields=[
+                  ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                  ('fileno', models.CharField(max_length=18, verbose_name='文件编号')),
+                  ('filename', models.CharField(max_length=200, verbose_name='文件名称')),
+                  ('filepath', models.CharField(max_length=200, verbose_name='文件路径')),
+                  ('owner', models.CharField(max_length=30, verbose_name='文件所属用户')),
+                  ('filegroup', models.CharField(default='未分组', max_length=30, verbose_name='文件所属分组')),
+                  ('add_time', models.DateTimeField(default=datetime.datetime.now, verbose_name='上传时间')),
+                  ('first_check', models.CharField(choices=[('0', '未审批'), ('1', '已审批')], default='0', max_length=1, verbose_name='初审')),
+                  ('second_check', models.CharField(choices=[('0', '未审批'), ('1', '已审批')], default='0', max_length=1, verbose_name='二审')),
+                  ('isapprove', models.CharField(choices=[('0', '未审批'), ('1', '已审批'), ('2', '已驳回')], default='0', max_length=1, verbose_name='终审')),
+              ],
+              options={
+                  'verbose_name': '文件',
+                  'verbose_name_plural': '文件',
+              },
+          ),
+          migrations.CreateModel(
+              name='FileGroup',
+              fields=[
+                  ('filegroupno', models.AutoField(primary_key=True, serialize=False, verbose_name='文件分组编号')),
+                  ('filegroupname', models.CharField(max_length=30, verbose_name='文件分组名字')),
+              ],
+              options={
+                  'verbose_name': '文件分组',
+                  'verbose_name_plural': '文件分组',
+              },
+          ),
+          migrations.CreateModel(
+              name='PublicIp',
+              fields=[
+                  ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                  ('host_ip', models.CharField(blank=True, max_length=300, verbose_name='公用电脑ip地址')),
+              ],
+              options={
+                  'verbose_name': '公用电脑ip地址',
+                  'verbose_name_plural': '公用电脑ip地址',
+              },
+          ),
+      ]
+  # Register your models here.
+  class ServersConfig(AppConfig):
+      name = 'apps.files'
+  from django.db import models
+  # 文件model
+  class File(models.Model):
+      fileno = models.CharField(max_length=18, verbose_name='文件编号')
+      filename = models.CharField(max_length=200, verbose_name='文件名称')
+    filepath = models.CharField(max_length=200, verbose_name='文件路径')
+      owner = models.CharField(max_length=30, verbose_name='文件所属用户')
+      filegroup = models.CharField(
+          max_length=30, verbose_name='文件所属分组', default="未分组")
+      add_time = models.DateTimeField(default=datetime.now, verbose_name='上传时间')
+      first_check = models.CharField(max_length=1, choices=(
+          ('0', '未审批'), ('1', '已审批')), verbose_name='初审', default='0')
+      second_check = models.CharField(max_length=1, choices=(
+          ('0', '未审批'), ('1', '已审批')), verbose_name='二审', default='0')
+      isapprove = models.CharField(max_length=1, choices=(
+          ('0', '未审批'), ('1', '已审批'), ('2', '已驳回')), verbose_name='终审', default='0')
+      class Meta:
+          verbose_name = '文件'
+          verbose_name_plural = verbose_name
+      def __str__(self):
+          return self.filename
+  # 文件分组 model
+  class FileGroup(models.Model):
+      # filegroupno 为自增id
+      filegroupno = models.AutoField(primary_key=True,verbose_name='文件分组编号')
+      filegroupname = models.CharField(max_length=30, verbose_name='文件分组名字')
+      class Meta:
+          verbose_name = '文件分组'
+          verbose_name_plural = verbose_name
+      def __str__(self):
+          return self.filegroupname
+  # 文件审批日志model
+  class ApproveLog(models.Model):
+      fileno = models.CharField(max_length=18, verbose_name='文件编号')
+      filename = models.CharField(max_length=200, verbose_name='文件名称')
+      owner = models.CharField(max_length=30, verbose_name='文件所属用户')
+      add_time = models.DateTimeField(verbose_name='上传时间')
+      isapprove = models.CharField(max_length=1, choices=(
+          ('1', '已审批'), ('2', '已驳回')), verbose_name='终审')
+      approve_time = models.DateTimeField(
+          default=datetime.now, verbose_name='审批时间')
+      class Meta:
+          verbose_name = '文件审批日志'
+          verbose_name_plural = verbose_name
+      def __str__(self):
+          return self.filename
+  # 弃用
+  # 公用电脑ip地址model
+  class PublicIp(models.Model):
+      host_ip = models.CharField(
+          max_length=300, verbose_name='公用电脑ip地址', blank=True)
+      class Meta:
+          verbose_name = '公用电脑ip地址'
+          verbose_name_plural = verbose_name
+      def __str__(self):
+          return self.host_ip
+  # Create your tests here.
+  from .views import FileGroupView, FileUploadView, FileDownloadView, FileExportView, PublicIpView, FileFirstCheckView
+  from .views import FileSecondCheckView, FileApproveView, FileRejectView, FileApproveListView, FileApproveLogView
+  urlpatterns = [
+      path('upload/', FileUploadView.as_view(), name='upload'),
+      path('download/<int:file_id>/', FileDownloadView.as_view(), name='download'),
+    path('firstcheck/<int:file_id>/', FileFirstCheckView.as_view(), name='firstcheck'),
+      path('secondcheck/<int:file_id>/', FileSecondCheckView.as_view(), name='secondcheck'),
+      path('approve/<int:file_id>/', FileApproveView.as_view(), name='approve'),
+      path('reject/<int:file_id>/', FileRejectView.as_view(), name='reject'),
+      path('approvelist/', FileApproveListView.as_view(), name='approvelist'),
+      path('approvelog/', FileApproveLogView.as_view(), name='approvelog'),
+      path('export/', FileExportView.as_view(), name='export'),
+      path('filegroup/', FileGroupView.as_view(), name='filegroup'),
+      # path('public_ip/', PublicIpView.as_view(), name='public_ip'),
+  ]
+  import os
+  import datetime
+  from django.shortcuts import render
+  from django.views.generic.base import View
+  from django.http.response import HttpResponseRedirect, HttpResponse
+  from django.urls import reverse
+  from django.http import FileResponse
+from django.utils.http import urlquote
+  from django.db.models import Q
+  from pure_pagination import Paginator, PageNotAnInteger
+  from .models import File, PublicIp, ApproveLog,FileGroup
+  from users.models import UserOperateLog
+  from wjgl.settings import per_page, root_path
+  from utils.mixin_utils import LoginRequiredMixin
+  # 首页(文件列表)
+  class IndexView(LoginRequiredMixin, View):
+      def get(self, request):
+          search = request.GET.get('search')
+          # if search:
+          #     search = search.strip()
+          #     if request.user.role == '3' or request.user.is_superuser == 1:
+          #         files = File.objects.filter(Q(fileno__icontains=search) | Q(filename__icontains=search) 
+          #                                     | Q(filegroup__icontains=search) 
+          #                                     | Q(owner__icontains=search)).order_by('-add_time')
+          #     else:
+          #         files = File.objects.filter(Q(fileno__icontains=search) | Q(filename__icontains=search) 
+          #                                     | Q(filegroup__icontains=search) ,
+          #                                     owner=request.user.username).order_by( '-add_time')
+          # else:
+          #     if request.user.role == '3' or request.user.is_superuser == 1:
+          #         files = File.objects.all().order_by('-add_time')
+          #     else:
+          #         files = File.objects.filter(owner=request.user.username).order_by('-add_time')
+          if search:
+              search = search.strip()
+              files = File.objects.filter(Q(fileno__icontains=search) | Q(filename__icontains=search) 
+                                              | Q(filegroup__icontains=search) 
+                                              | Q(owner__icontains=search)).order_by('filegroup','-add_time')
+          else:
+              files = File.objects.all().order_by('filegroup','-add_time')
+              
+          # 分页功能实现
+          try:
+              page = request.GET.get('page', 1)
+          except PageNotAnInteger:
+              page = 1
+          p = Paginator(files, per_page=per_page, request=request)
+          p_contents = p.page(page)
+          start = (int(page)-1) * per_page  # 避免分页后每行数据序号从1开始
+          return render(request, 'files/index.html', {'p_contents': p_contents, 'start': start, 'search': search})
+  # 文件分组列表
+  class FileGroupView(LoginRequiredMixin,View):
+      def get(self ,request):
+          filegroup = FileGroup.objects.all().values()
+          # p = Paginator(filegroup,per_page=per_page,request=request)
+          # p_contents = p.page(page)
+          return render(request,'files/file_group.html',{'contents':filegroup})
+      # instance attribute
+      def post(self,request):
+          """
+          Purpose: 
+          """
+          group_name=request.POST.get("file_group")
+          filegroup = FileGroup.objects
+          if  len(filegroup.filter(Q(filegroupname=group_name))) == 1 :
+              return render(request, 'files/file_group.html', {'msg': '分组名重复！！'})
+          # TODO: 分组名不重复的时候进行添加分组名,存入数据库中
+          fileg = FileGroup()
+          fileg.filegroupname = group_name
+          fileg.save()
+          return render(request, 'files/file_group.html', {'msg': '分组名添加成功！！','contents':filegroup.all().values()})
+      # end def
+  # 获取用户的ip地址
+  def get_client_ip(request):
+      x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+      if x_forwarded_for:
+          ip = x_forwarded_for.split(',')[-1].strip()
+      else:
+          ip = request.META.get('REMOTE_ADDR')
+      return ip
+  # 文件上传
+  class FileUploadView(LoginRequiredMixin, View):
+      def get(self, request):
+          filegroup = FileGroup.objects.all().values()
+          return render(request, 'files/file_upload.html', {'p_contents':filegroup})
+      def post(self, request):
+        my_file = request.FILES.get('myfile', None)
+          if not my_file:
+              return render(request, 'files/file_upload.html', {'msg': '没有选择文件,请重新上传！！'})
+          # 获取请求文件分组
+          my_file_group=request.POST.get('file_group')
+          year = str(datetime.datetime.now().year)
+          month = str(datetime.datetime.now().month)
+          day = str(datetime.datetime.now().day)
+          username = request.user.username.upper()
+          # 上传文件保存目录
+          upload_path = os.path.join(root_path, username, year, month, day)
+          if os.path.isfile(os.path.join(upload_path, my_file.name)):
+              return render(request, 'files/file_upload.html', {'msg': my_file.name + '已存在'})
+          if not os.path.exists(upload_path):
+              os.makedirs(upload_path)
+          with open(os.path.join(upload_path, my_file.name), 'wb+') as f:
+              for chunk in my_file.chunks():
+                  f.write(chunk)
+          # 将上传记录插入到文件表中
+          records = File()
+          records.fileno = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S%f'))[:17]  # 时间精确到0.001s，用作文件的编号
+          records.filename = my_file.name
+          records.filepath = upload_path
+          records.owner = username
+          records.filegroup = my_file_group
+          records.save()
+          # 将上传记录插入到日志记录中
+          logs = UserOperateLog()
+          logs.userno = request.user.userno
+          logs.username = username
+          logs.type = '上传'
+          logs.fileno = records.fileno
+          logs.filename = records.filename
+          # 判断上传文件是否通过公用电脑上传
+          ip = get_client_ip(request)
+          public_ip = PublicIp.objects.first()
+          if public_ip:
+              if ip in public_ip.host_ip:
+                  logs.comment = '拷入'
+              else:
+                  logs.comment = ''
+          logs.save()
+          return HttpResponseRedirect((reverse('index')))
+  # 文件一审
+  class FileFirstCheckView(LoginRequiredMixin, View):
+      def get(self, request, file_id):
+          if request.user.role != '3' or request.user.sub_role != '1':
+              return HttpResponse(status=404)
+          file = File.objects.get(id=file_id)
+          if file.first_check == '0':
+              file.first_check = '1'
+          else:
+              file.first_check = '0'
+          file.save()
+          return HttpResponseRedirect((reverse('index')))
+  # 文件二审
+  class FileSecondCheckView(LoginRequiredMixin, View):
+      def get(self, request, file_id):
+          if request.user.role != '3' or request.user.sub_role != '2':
+              return HttpResponse(status=404)
+          file = File.objects.get(id=file_id)
+          if file.second_check == '0':
+              file.second_check = '1'
+          else:
+              file.second_check = '0'
+          file.save()
+          return HttpResponseRedirect((reverse('index')))
+  # 文件终审待审列表
+  class FileApproveListView(LoginRequiredMixin, View):
+      def get(self, request):
+          search = request.GET.get('search')
+          if search:
+              search = search.strip()
+              files = File.objects.filter(~Q(owner=request.user.username), Q(fileno__icontains=search)
+                                          | Q(filename__icontains=search) | Q(owner__icontains=search),
+                                          first_check='1', second_check='1', isapprove='0').order_by('-add_time')
+          else:
+              files = File.objects.filter(~Q(owner=request.user.username), first_check='1', second_check='1',
+                                          isapprove='0').order_by('-add_time')
+          # 分页功能实现
+          try:
+              page = request.GET.get('page', 1)
+          except PageNotAnInteger:
+              page = 1
+          p = Paginator(files, per_page=per_page, request=request)
+          p_contents = p.page(page)
+          start = (int(page)-1) * per_page  # 避免分页后每行数据序号从1开始
+          return render(request, 'files/file_approve_list.html', {'p_contents': p_contents, 'start': start, 'search': search})
+  # 文件终审
+  class FileApproveView(LoginRequiredMixin, View):
+      def get(self, request, file_id):
+          file = File.objects.get(id=file_id)
+          if request.user.username == file.owner:
+              return HttpResponse(status=404)
+          if file.isapprove == '0':
+              file.isapprove = '1'
+          else:
+              file.isapprove = '0'
+          file.save()
+          # 插入审批日志
+          logs = ApproveLog()
+          logs.fileno = file.fileno
+          logs.filename = file.filename
+          logs.owner = file.owner
+          logs.add_time = file.add_time
+          logs.isapprove = file.isapprove
+          logs.save()
+          return HttpResponseRedirect((reverse('files:approvelist')))
+  # 文件终审退回
+  class FileRejectView(LoginRequiredMixin, View):
+      def get(self, request, file_id):
+          file = File.objects.get(id=file_id)
+          if request.user.username == file.owner:
+              return HttpResponse(status=404)
+          file.isapprove = '2'
+          file.save()
+          # 插入审批日志
+          logs = ApproveLog()
+          logs.fileno = file.fileno
+          logs.filename = file.filename
+          logs.owner = file.owner
+          logs.add_time = file.add_time
+          logs.isapprove = file.isapprove
+          logs.save()
+          return HttpResponseRedirect((reverse('files:approvelist')))
+  # 文件审批记录
+  class FileApproveLogView(LoginRequiredMixin, View):
+      def get(self, request):
+          search = request.GET.get('search')
+          if search:
+              search = search.strip()
+              logs = ApproveLog.objects.filter(Q(fileno__icontains=search) | Q(filename__icontains=search)
+                                              | Q(owner__icontains=search)).order_by('-approve_time')
+          else:
+              logs = ApproveLog.objects.all() .order_by('-approve_time')
+          # 分页功能实现
+          try:
+              page = request.GET.get('page', 1)
+          except PageNotAnInteger:
+              page = 1
+          p = Paginator(logs, per_page=per_page, request=request)
+          p_contents = p.page(page)
+          start = (int(page)-1) * per_page  # 避免分页后每行数据序号从1开始
+          return render(request, 'files/file_approve_log.html', {'p_contents': p_contents, 'start': start, 'search': search})
+  # 文件下载
+  class FileDownloadView(LoginRequiredMixin, View):
+      def get(self, request, file_id):
+          file = File.objects.get(id=file_id)
+          if (request.user.username.upper() != file.owner.upper() and request.user.role != '3' and request.user.is_superuser != 1):
+              return HttpResponse(status=404)
+          # 通过flag判断各种情况
+          flag = ''
+          ip = get_client_ip(request)
+          public_ip = PublicIp.objects.first()
+          if public_ip:
+              if ip in public_ip.host_ip:
+                  if file.first_check == '1' and file.second_check == '1' and file.isapprove == '1':
+                      flag = '公用可下载'
+                  else:
+                      flag = '公用不可下载'
+          else:
+              flag = '普通下载'
+          if flag == '公用不可下载':
+              return render(request, 'files/file_download_error.html', {'msg': '该公用电脑无法下载，请联系管理员~'})
+          else:
+              filename = file.filename
+              filepath = file.filepath
+              if not os.path.isfile(os.path.join(filepath, filename)):
+                  return render(request, 'files/file_download_error.html', {'msg': '文件可能已经被删除，请联系管理员~'})
+              download_file = open(os.path.join(filepath, filename), 'rb')
+              response = FileResponse(download_file)
+              response['Content-Type'] = 'application/octet-stream'
+              response['Content-Disposition'] = 'attachment; filename=' + urlquote(filename)
+              # 将下载记录插入到日志记录中
+              logs = UserOperateLog()
+              logs.userno = request.user.userno
+              logs.username = request.user.username.upper()
+              logs.type = '下载'
+              logs.filename = filename
+              logs.fileno = file.fileno
+              if flag == '公用可下载':
+                  logs.comment = '拷出'
+              else:
+                  logs.comment = ''
+              logs.save()
+              return response
+  # 文件列表导出
+  class FileExportView(LoginRequiredMixin, View):
+      def get(self, request):
+          if request.user.role != '3' and request.user.is_superuser != 1:
+              return HttpResponse(status=404)
+          search = request.GET.get('search')
+          if search:
+              search = request.GET.get('search').strip()
+              files = File.objects.filter(Q(fileno__icontains=search) | Q(filename__icontains=search) | Q(filegroup__icontains=search)
+                                          | Q(owner__icontains=search)).order_by('-add_time')
+          else:
+              files = File.objects.all().order_by('-add_time')
+          files = files.values('fileno', 'filename', 'filepath','filegroup', 'owner', 'add_time')
+          colnames = ['文件编号', '文件名', '文件路径', '文件分组','上传用户', '上传时间']
+          response = create_excel(colnames, files, 'ysd-file')
+          return response
+  def create_excel(columns, content, filename):
+      """创建导出csv的函数"""
+      filename = filename + '.csv'
+      response = HttpResponse(content_type='text/csv')
+      response['Content-Disposition'] = 'attachment; filename=' + filename
+      response.charset = 'utf-8'
+      writer = csv.writer(response)
+      writer.writerow(columns)
+      for i in content:
+          writer.writerow([i['fileno'], i['filename'], i['filepath'], i['filegroup'] ,i['owner'], i['add_time'].strftime( '%Y/%m/%d %H:%M:%S')])
+      return response
+  # 公用电脑ip
+  class PublicIpView(LoginRequiredMixin, View):
+      def get(self, request):
+          if request.user.role != '2' and request.user.is_superuser != 1:
+              return HttpResponse(status=404)
+          public_ip = PublicIp.objects.first()
+          return render(request, 'files/public_ip.html', {'public_ip': public_ip})
+      def post(self, request):
+          public_ip = PublicIp.objects.first()
+          if not public_ip:
+              public_ip = PublicIp()
+          public_ip.host_ip = request.POST.get('host_ip')
+          public_ip.save()
+          return HttpResponseRedirect((reverse('index')))
+  import datetime
+  import django.contrib.auth.models
+  import django.contrib.auth.validators
+  from django.db import migrations, models
+  import django.utils.timezone
+class Migration(migrations.Migration):
+      initial = True
+      dependencies = [
+          ('auth', '0011_update_proxy_permissions'),
+      ]
+      operations = [
+          migrations.CreateModel(
+              name='UserOperateLog',
+              fields=[
+                  ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                  ('userno', models.CharField(max_length=15, verbose_name='工号')),
+                  ('username', models.CharField(max_length=20, verbose_name='姓名')),
+                  ('type', models.CharField(max_length=20, verbose_name='操作类型')),
+                  ('comment', models.CharField(max_length=20, verbose_name='备注')),
+                  ('fileno', models.CharField(max_length=18, verbose_name='文件编号')),
+                  ('filename', models.CharField(max_length=200, verbose_name='文件名称')),
+                  ('modify_time', models.DateTimeField(default=datetime.datetime.now, verbose_name='操作时间')),
+              ],
+              options={
+                  'verbose_name': '用户操作日志',
+                  'verbose_name_plural': '用户操作日志',
+              },
+          ),
+          migrations.CreateModel(
+              name='UserProfile',
+              fields=[
+                  ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                  ('password', models.CharField(max_length=128, verbose_name='password')),
+                  ('last_login', models.DateTimeField(blank=True, null=True, verbose_name='last login')),
+                  ('username', models.CharField(error_messages={'unique': 'A user with that username already exists.'}, help_text='Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.', max_length=150, unique=True, validators=[django.contrib.auth.validators.UnicodeUsernameValidator()], verbose_name='username')),
+                  ('first_name', models.CharField(blank=True, max_length=30, verbose_name='first name')),
+                  ('last_name', models.CharField(blank=True, max_length=150, verbose_name='last name')),
+                  ('email', models.EmailField(blank=True, max_length=254, verbose_name='email address')),
+                  ('is_staff', models.BooleanField(default=False, help_text='Designates whether the user can log into this admin site.', verbose_name='staff status')),
+                  ('is_active', models.BooleanField(default=True, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active')),
+                  ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
+                  ('userno', models.CharField(max_length=15, verbose_name='工号')),
+                  ('department', models.CharField(blank=True, max_length=15, verbose_name='部门')),
+                  ('role', models.CharField(choices=[('3', '监察稽核员'), ('2', '系统管理员'), ('1', '普通员工'), ('0', '离职员工')], default='1', max_length=1, verbose_name='用户角色')),
+                  ('sub_role', models.CharField(choices=[('2', '二审员'), ('1', '初审员'), ('0', '')], default='0', max_length=1, verbose_name='子角色')),
+                  ('is_superuser', models.IntegerField(default=0, verbose_name='超级管理员')),
+                  ('add_time', models.DateTimeField(default=datetime.datetime.now, verbose_name='添加时间')),
+                  ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.Group', verbose_name='groups')),
+                  ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.Permission', verbose_name='user permissions')),
+              ],
+              options={
+                  'verbose_name': '用户信息',
+                  'verbose_name_plural': '用户信息',
+              },
+              managers=[
+                  ('objects', django.contrib.auth.models.UserManager()),
+              ],
+          ),
+      ]
+  # Register your models here.
+  class UsersConfig(AppConfig):
+      name = 'apps.users'
+  from .models import UserProfile
+  # 定义登录时表单验证
+  class LoginForm(forms.Form):
+      username = forms.CharField(required=True)
+      password = forms.CharField(required=True)
+
+  # 定义用户修改密码时表单验证
+  class UserPwdModifyForm(forms.Form):
+      pwd1 = forms.CharField(required=True)
+      pwd2 = forms.CharField(required=True)
+  # 定义添加，修改用户时表单验证
+  class UserInfoForm(forms.ModelForm):
+      userno = forms.CharField(required=True, max_length=15)
+      username = forms.CharField(required=True, max_length=15)
+      class Meta:
+          model = UserProfile
+          fields = ['department', 'role']
+  from django.db import models
+  from django.contrib.auth.models import AbstractUser
+  # 定义用户模型，添加额外的字段
+  class UserProfile(AbstractUser):
+      userno = models.CharField(max_length=15, verbose_name='工号')
+    department = models.CharField(max_length=15, verbose_name='部门', blank=True)
+      role = models.CharField(max_length=1, choices=(('3', '监察稽核员'), ('2', '系统管理员'),
+                                                    ('1', '普通员工'), ('0', '离职员工')),
+                              verbose_name='用户角色', default='1')
+      sub_role = models.CharField(max_length=1, choices=(('2', '二审员'), ('1', '初审员'), ('0', '')),
+                                  verbose_name='子角色', default='0')
+      is_superuser = models.IntegerField(verbose_name='超级管理员', default=0)
+      add_time = models.DateTimeField(default=datetime.now, verbose_name='添加时间')
+      class Meta:
+          verbose_name = '用户信息'
+          verbose_name_plural = verbose_name
+      def __str__(self):
+          return self.username
+  # 定义用户操作日志模型
+  class UserOperateLog(models.Model):
+      userno = models.CharField(max_length=15, verbose_name='工号')
+      username = models.CharField(max_length=20, verbose_name='姓名')
+      type = models.CharField(max_length=20, verbose_name='操作类型')
+      comment = models.CharField(max_length=20, verbose_name='备注')
+      fileno = models.CharField(max_length=18, verbose_name='文件编号')
+      filename = models.CharField(max_length=200, verbose_name='文件名称')
+      modify_time = models.DateTimeField(default=datetime.now, verbose_name='操作时间')
+      class Meta:
+          verbose_name = '用户操作日志'
+          verbose_name_plural = verbose_name
+      def __str__(self):
+          return self.username + '.' + self.type
+  # Create your tests here.
+  from .views import UserLoginView, UserLogoutView
+  from .views import UserListView, UserAddView, UserDetailView, UserModifyView, UserResetPwd, UserPwdModifyView
+  from .views import UserOperateView
+  urlpatterns = [
+      path('login/', UserLoginView.as_view(), name='login'),
+    path('logout/', UserLogoutView.as_view(), name='logout'),
+      # 定义用户的相关url
+      path('list/', UserListView.as_view(), name='list'),
+      path('add/', UserAddView.as_view(), name='add'),
+      path('detail/<int:user_id>/', UserDetailView.as_view(), name='detail'),
+      path('modify/', UserModifyView.as_view(), name='modify'),
+      path('pwdreset/<int:user_id>', UserResetPwd.as_view(), name='pwdreset'),   #  该url为管理员重置用户密码
+      path('pwdmodify/', UserPwdModifyView.as_view(), name='pwd_modify'),  #  该url为用户修改自身密码
+      # 定义用户操作url
+      path('operate_log/', UserOperateView.as_view(), name='operate_log'),
+  ]
+  from django.views.generic.base import View
+  from django.contrib.auth import authenticate, login, logout
+  from django.contrib.auth.backends import ModelBackend
+  from django.contrib.auth.hashers import make_password
+  from django.http import HttpResponseRedirect, HttpResponse
+  from django.urls import reverse
+  from django.db.models import Q
+  from pure_pagination import Paginator, PageNotAnInteger
+
+  from .models import UserProfile, UserOperateLog
+  from .forms import LoginForm, UserPwdModifyForm, UserInfoForm
+  from wjgl.settings import per_page
+  from utils.mixin_utils import LoginRequiredMixin
+  # 用户初始密码
+  pwd = '123456'
+  # 用户的相关视图
+  # 用戶使用用戶名或工号登陆
+  class CustomeBackend(ModelBackend):
+      def authenticate(self, request, username=None, password=None, **kwargs):
+          try:
+              user = UserProfile.objects.get(Q(username=username) | Q(userno=username))
+              if user.check_password(password):
+                  return user
+          except Exception as e:
+              return None
+  # 用户登录
+  class UserLoginView(View):
+      def get(self, request):
+          return render(request, 'users/login.html')
+      def post(self, request):
+          login_form = LoginForm(request.POST)
+          if login_form.is_valid():
+              username = request.POST.get('username').strip()
+              password = request.POST.get('password').strip()
+              user = authenticate(username=username, password=password)
+              if user:
+                  login(request, user)
+                  if request.user.role == '0' and request.user.is_superuser != 1:
+                      return render(request, 'users/login.html', {'msg': '该账号已锁，请联系管理员'})
+                  return HttpResponseRedirect(reverse('index'))
+              else:
+                  return render(request, 'users/login.html', {'msg': '账号或密码错误'})
+          else:
+              return render(request, 'users/login.html', {'msg': '账号或密码错误', 'login_form': login_form})
+  # 用户退出
+  class UserLogoutView(View):
+      def get(self, request):
+          logout(request)
+          response = redirect(reverse('users:login'))
+          response.delete_cookie('username')
+          return response
+  # 用户修改密码
+  class UserPwdModifyView(LoginRequiredMixin, View):
+      def get(self, request):
+          return render(request, 'users/user_pwd_modify.html')
+      def post(self, request):
+          user_pwd_modify_form = UserPwdModifyForm(request.POST)
+          if user_pwd_modify_form.is_valid():
+              user = UserProfile.objects.get(username=request.user.username)
+              pwd1 = request.POST.get('pwd1').strip()
+              pwd2 = request.POST.get('pwd2').strip()
+              if pwd1 == pwd2:
+                  user.password = make_password(pwd1)
+                  user.save()
+                  return HttpResponseRedirect((reverse('users:login')))
+              else:
+                  return render(request, 'users/user_pwd_modify.html', {'msg': '两次密码不一致！'})
+          else:
+              return render(request, 'users/user_pwd_modify.html', {'msg': '密码不能为空！',
+                                                                    'user_pwd_modify_form': user_pwd_modify_form})
+  # 管理员对用户的操作相关视图(管理员可见)
+  # 用户列表
+  class UserListView(LoginRequiredMixin, View):
+      def get(self, request):
+          if request.user.role != '2' and request.user.is_superuser != 1:
+              return HttpResponse(status=404)
+          search = request.GET.get('search')
+          if search:
+              search = request.GET.get('search').strip()
+              users = UserProfile.objects.filter(Q(userno__icontains=search) | Q(username__icontains=search)
+                                                | Q(department__icontains=search), is_superuser=0
+                                                ).order_by('-role', 'userno')  # 排除超级管理员
+          else:
+              users = UserProfile.objects.filter(is_superuser=0).order_by('-role', 'userno')  # 排除超级管理员
+
+          # 分页功能实现
+          try:
+              page = request.GET.get('page', 1)
+          except PageNotAnInteger:
+              page = 1
+          p = Paginator(users, per_page=per_page, request=request)
+          p_contents = p.page(page)
+          start = (int(page)-1) * per_page  # 避免分页后每行数据序号从1开始
+          return render(request, 'users/user_list.html', {'p_contents': p_contents, 'start': start, 'search': search})
+  # 用户添加
+  class UserAddView(LoginRequiredMixin, View):
+      def get(self, request):
+          if request.user.role != '2' and request.user.is_superuser != 1:
+              return HttpResponse(status=404)
+          return render(request, 'users/user_add.html')
+      def post(self, request):
+          userinfo_form = UserInfoForm(request.POST)
+          if userinfo_form.is_valid():
+              userno = request.POST.get('userno').strip()
+              username = request.POST.get('username').strip()
+              department = request.POST.get('department').strip()
+              role = request.POST.get('role')
+              sub_role = request.POST.get('sub_role')
+              user = UserProfile.objects.filter(username=username)
+              if user:
+                  return render(request, 'users/user_add.html', {'msg': '用户 '+username+' 已存在！'})
+              else:
+                  new_user = UserProfile(userno=userno, username=username, password=make_password(pwd),
+                                        department=department, role=role, sub_role=sub_role)
+                  new_user.save()
+                  return HttpResponseRedirect((reverse('users:list')))
+          else:
+              return render(request, 'users/user_add.html', {'msg': '输入错误！', 'userinfo_form': userinfo_form})
+  # 用户详情
+  class UserDetailView(LoginRequiredMixin, View):
+      def get(self, request, user_id):
+          if request.user.role != '2' and request.user.is_superuser != 1:
+              return HttpResponse(status=404)
+          user = UserProfile.objects.get(id=user_id)
+          return render(request, 'users/user_detail.html', {'user': user})
+  # 用户修改
+  class UserModifyView(LoginRequiredMixin, View):
+      def post(self, request):
+          userinfo_form = UserInfoForm(request.POST)
+          user_id = int(request.POST.get('user_id'))
+          user = UserProfile.objects.get(id=user_id)
+          if userinfo_form.is_valid():
+              username = request.POST.get('username').strip()
+              other_user = UserProfile.objects.filter(~Q(id=user_id), username=username)
+              # 如果修改了用户名，判断是否该用户名与其他用户冲突
+              if other_user:
+                  return render(request, 'users/user_detail.html', {'user': user, 'msg': username+'用户名已存在！'})
+              else:
+                  user.userno = request.POST.get('userno').strip()
+                  user.username = request.POST.get('username').strip()
+                  user.department = request.POST.get('department').strip()
+                  user.role = request.POST.get('role')
+                  user.sub_role = request.POST.get('sub_role')
+                  user.save()
+                  return HttpResponseRedirect((reverse('users:list')))
+          else:
+              return render(request, 'users/user_detail.html', {'user': user, 'msg': '输入错误！', 'userinfo_form': userinfo_form})
+  # 重置用户密码
+  class UserResetPwd(LoginRequiredMixin, View):
+      def get(self, request, user_id):
+          if request.user.role != '2' and request.user.is_superuser != 1:
+              return HttpResponse(status=404)
+          user = UserProfile.objects.get(id=user_id)
+          user.password = make_password(pwd)
+          user.save()
+          return HttpResponseRedirect((reverse('users:list')))
+  # 操作日志
+  class UserOperateView(LoginRequiredMixin, View):
+      def get(self, request):
+          search = request.GET.get('search')
+          if search:
+              search = search.strip()
+              if request.user.role == '3' or request.user.is_superuser == 1:
+                  operate_logs = UserOperateLog.objects.filter(Q(userno__icontains=search) | Q(username__icontains=search)
+                                                              | Q(fileno__icontains=search) | Q(filename__icontains=search)
+                                                              ).order_by('-modify_time')
+              else:
+                  operate_logs = UserOperateLog.objects.filter(Q(userno__icontains=search) | Q(fileno__icontains=search)
+                                                              | Q(filename__icontains=search), username=request.user.username
+                                                              ).order_by('-modify_time')
+          else:
+              if request.user.role == '3' or request.user.is_superuser == 1:
+                  operate_logs = UserOperateLog.objects.all().order_by('-modify_time')
+              else:
+                  operate_logs = UserOperateLog.objects.filter(username=request.user.username).order_by('-modify_time')
+          # 分页功能实现
+          try:
+              page = request.GET.get('page', 1)
+          except PageNotAnInteger:
+              page = 1
+          p = Paginator(operate_logs, per_page=per_page, request=request)
+          p_contents = p.page(page)
+          start = (int(page)-1) * per_page  # 避免分页后每行数据序号从1开始
+          return render(request, 'users/operate_log.html', {'p_contents': p_contents, 'start': start, 'search': search})
+  # 定义全局404
+  def page_not_found(request):
+      response = render_to_response('404.html')
+      response.status_code = 404
+      return response
+  # 定义全局500
+  def page_error(request):
+      response = render_to_response('500.html')
+      response.status_code = 500
+      return response
+  from django.utils.decorators import method_decorator
+  # 定义只有登录才能访问的class
+  class LoginRequiredMixin(object):
+      @method_decorator(login_required(login_url='/users/login'))
+      def dispatch(self, request, *args, **kwargs):
+          return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
+
+  import sys
+  # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+  BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+  # 将apps加入到sources root列表中
+  sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
+# SECURITY WARNING: keep the secret key used in production secret!
+x#rqtrcjy$7zddw0afu(rut5-i+_f!lvnkzha0pf%uwtl0'
+  # SECURITY WARNING: don't run with debug turned on in production!
+  DEBUG = True
+  # 定义允许访问的ip地址
+  ALLOWED_HOSTS = ['*']
+  # Application definition
+  # 自定义用户登录校验
+  AUTHENTICATION_BACKENDS = (
+      'users.views.CustomeBackend',
+  )
+  INSTALLED_APPS = [
+      'django.contrib.admin',
+      'django.contrib.auth',
+      'django.contrib.contenttypes',
+      'django.contrib.sessions',
+      'django.contrib.messages',
+      'django.contrib.staticfiles',
+      'users',
+      'files',
+  ]
+  MIDDLEWARE = [
+      'django.middleware.security.SecurityMiddleware',
+      'django.contrib.sessions.middleware.SessionMiddleware',
+      'django.middleware.common.CommonMiddleware',
+      'django.middleware.csrf.CsrfViewMiddleware',
+      'django.contrib.auth.middleware.AuthenticationMiddleware',
+      'django.contrib.messages.middleware.MessageMiddleware',
+      'django.middleware.clickjacking.XFrameOptionsMiddleware',
+  ]
+  ROOT_URLCONF = 'wjgl.urls'
+  TEMPLATES = [
+      {
+          'BACKEND': 'django.template.backends.django.DjangoTemplates',
+          'DIRS': [os.path.join(BASE_DIR, 'templates')],
+          'APP_DIRS': True,
+          'OPTIONS': {
+              'context_processors': [
+                  'django.template.context_processors.debug',
+                  'django.template.context_processors.request',
+                  'django.contrib.auth.context_processors.auth',
+                  'django.contrib.messages.context_processors.messages',
+              ],
+          },
+      },
+  ]
+  WSGI_APPLICATION = 'wjgl.wsgi.application'
+  # Database
+  DATABASES = {
+      'default': {
+          'ENGINE': 'django.db.backends.mysql',
+          'NAME': 'ysd',
+          'USER': 'root',
+          'PASSWORD': '123456',
+          'HOST': '172.17.0.1',
+      }
+  }
+  # Password validation
+  AUTH_PASSWORD_VALIDATORS = [
+      {
+          'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+      },
+      {
+          'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+      },
+      {
+          'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+      },
+      {
+          'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+      },
+  ]
+  # Internationalization
+  LANGUAGE_CODE = 'en-us'
+  # LANGUAGE_CODE = 'zh-Hans' 中文会影响很多问题，包括数据库
+  TIME_ZONE = 'Asia/Shanghai'
+  USE_I18N = True
+  USE_L10N = True
+USE_TZ = False
+  # Static files (CSS, JavaScript, Images)
+  STATIC_URL = '/static/'
+  # 正式环境中将此项注释掉
+  STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+  # 正式环境中将此项注释取消
+  # STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+  # 扩展django自带的user model，添加字段
+  AUTH_USER_MODEL = 'users.UserProfile'
+  # 分页的相关设置
+  PAGINATION_SETTINGS = {
+      'PAGE_RANGE_DISPLAYED': 8,
+      'MARGIN_PAGES_DISPLAYED': 1,
+      'SHOW_FIRST_PAGE_WHEN_INVALID': True,
+  }
+  # 定义全局的变量
+  per_page = 20  # 定义html页面中列表每页显示的数量
+  # 全局404配置，名称必须是handler404
+  handler404 = 'users.views.page_not_found'
+  # 全局500配置，名称必须是handler500
+  handler500 = 'users.views.page_error'
+  # 上传的文件保存路径
+  # root_path = '/home/greatwall/桌面/wjgl-master/ft'
+  root_path = BASE_DIR+"/folder"
+  # 设置会话关闭浏览器就失效
+  SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+  from django.urls import path, include
+  from files.views import IndexView
+  urlpatterns = [
+      path('admin/', admin.site.urls),
+      path('', IndexView.as_view(), name='index'),
+    path('users/', include(('users.urls', 'users'), namespace='users')),
+      path('files/', include(('files.urls', 'files'), namespace='files')),
+  ]
+  WSGI config for wjgl project.
+  It exposes the WSGI callable as a module-level variable named ``application``.
+  For more information on this file, see
+  https://docs.djangoproject.com/en/2.2/howto/deployment/wsgi/
+  """
+import os
+  from django.core.wsgi import get_wsgi_application
+  os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wjgl.settings')
+  application = get_wsgi_application()
+  """Django's command-line utility for administrative tasks."""
+  import os
+  import sys
+  def main():
+      test = os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wjgl.settings')
+    try:
+          from django.core.management import execute_from_command_line
+      except ImportError as exc:
+          raise ImportError(
+              "Couldn't import Django. Are you sure it's installed and "
+THONPATH environment variable? Did you "
+              "forget to activate a virtual environment?"
+          ) from exc
+      execute_from_command_line(sys.argv)
+  if __name__ == '__main__':
+      main()
+  {% load staticfiles %}
+  {% block title %}文件管理 - 审批列表{% endblock %}
+  {% block custome_css %}{% endblock %}
+  {% block content %}
+    <div class="content">
+          <p>审批列表</p>
+          <div class="form-class">
+              <form action="" method="get">
+                  <input id="search" class="form-text" type="text" placeholder="搜索..." name="search" value="{% if search %}{{ search }}{% endif %}"/>
+                  <button class="form-submit" type="submit">
+                      <i class='fa fa-search' aria-hidden='true'></i>
+                  </button>
+              </form>
+          </div>
+          <br/><br/>
+          <table class="table-list">
+              <thead>
+                  <tr>
+                      <th>序号</th>
+                      <th>文件编号</th>
+                      <th>文件名称</th>
+                      <th>上传用户</th>
+                      <th>上传时间</th>
+                      <th>初审</th>
+                      <th>二审</th>
+                      <th>终审</th>
+                      <th>退回</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for content in p_contents.object_list %}
+                      <tr>
+start }}</td>
+                          <td>{{ content.fileno }}</td>
+                          <td>{{ content.filename }}</td>
+                          <td>{{ content.owner }}</td>
+s" }}</td>
+                          <td>{{ content.get_first_check_display }}</td>
+                          <td>{{ content.get_second_check_display }}</td>
+approve' content.id %}">{{ content.get_isapprove_display }}</a></td>
+reject' content.id %}">退回</a></td>
+                      </tr>
+                  {% endfor %}
+              </tbody>
+          </table>
+          <div class="page">
+              <ul class="pagination">
+                  {% if p_contents.has_previous %}
+                      <li><a href="?{{ p_contents.previous_page_number.querystring }}">&laquo;</a></li>
+                  {% endif %}
+                  {% for page in p_contents.pages %}
+                      {% if page %}
+                          {% ifequal page p_contents.number %}
+                              <li class="active"><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                          {% else %}
+                              <li><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                          {% endifequal %}
+                      {% else %}
+                          <li>...</li>
+                      {% endif %}
+                  {% endfor %}
+                  {% if p_contents.has_next %}
+                      <li><a href="?{{ p_contents.next_page_number.querystring }}">&raquo;</a></li>
+                  {% endif %}
+              </ul>
+          </div>
+      </div>
+  {% endblock %}
+  {% block custome_js %}{% endblock %}
+  {% load staticfiles %}
+  {% block title %}文件管理 - 审批记录{% endblock %}
+  {% block custome_css %}{% endblock %}
+  {% block content %}
+    <div class="content">
+          <p>审批记录</p>
+          <div class="form-class">
+              <form action="" method="get">
+                  <input id="search" class="form-text" type="text" placeholder="搜索..." name="search" value="{% if search %}{{ search }}{% endif %}"/>
+                  <button class="form-submit" type="submit">
+                      <i class='fa fa-search' aria-hidden='true'></i>
+                  </button>
+              </form>
+          </div>
+          <br/><br/>
+          <table class="table-list">
+              <thead>
+                  <tr>
+                      <th>序号</th>
+                      <th>文件编号</th>
+                      <th>文件名称</th>
+                      <th>上传用户</th>
+                      <th>上传时间</th>
+                      <th>审批结果</th>
+                      <th>审批时间</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for content in p_contents.object_list %}
+                      <tr>
+start }}</td>
+                          <td>{{ content.fileno }}</td>
+                          <td>{{ content.filename }}</td>
+                          <td>{{ content.owner }}</td>
+s" }}</td>
+                          <td>{{ content.get_isapprove_display }}</td>
+s" }}</td>
+                      </tr>
+                  {% endfor %}
+              </tbody>
+          </table>
+          <div class="page">
+              <ul class="pagination">
+                  {% if p_contents.has_previous %}
+                      <li><a href="?{{ p_contents.previous_page_number.querystring }}">&laquo;</a></li>
+                  {% endif %}
+                  {% for page in p_contents.pages %}
+                      {% if page %}
+                          {% ifequal page p_contents.number %}
+                              <li class="active"><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                          {% else %}
+                              <li><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                          {% endifequal %}
+                      {% else %}
+                          <li>...</li>
+                      {% endif %}
+                  {% endfor %}
+                  {% if p_contents.has_next %}
+                      <li><a href="?{{ p_contents.next_page_number.querystring }}">&raquo;</a></li>
+                  {% endif %}
+              </ul>
+          </div>
+      </div>
+  {% endblock %}
+  {% block custome_js %}{% endblock %}
+lang="en">
+  {% load staticfiles %}
+  <head>
+  <meta charset="UTF-8">
+  <title>404</title>
+      <link rel="stylesheet" href="{% static 'css/error-page.css' %}">
+</head>
+  <body>
+      <div class="p404">
+          <br/><br/>
+          <p>{{ msg }}</p>
+          <a href="{% url 'index' %}">回到首页</a>
+      </div>
+  </body>
+>
+  {% load staticfiles %}
+  {% block title %}文件管理 - 文件分组管理{% endblock %}
+  {% block custome_css %}
+      <link rel="stylesheet" href=" {% static 'files/css/upload.css' %} ">
+  {% endblock %}
+
+  {% block content %}
+      <div class="content">
+          <p class="content-note1">已有文件分组<span class="content-note2"> (暂不支持多层文件分组,后需添加此功能)</span></p>
+both"></div>
+          <br/><br/>
+          {% comment %} 文件分组列表 {% endcomment %}
+          <table class="table-list">
+              <thead>
+                  <tr>
+                      <th>分组序号</th>
+                      <th>文件分组名称</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for content in contents %}
+                      <tr>
+start }}</td> {% endcomment %}
+                          
+                          <td >{{ content.filegroupno }}</td>
+                          <td>{{ content.filegroupname }}</td>
+                          {% comment %} {% if request.user.role == '3' and request.user.sub_role == '2' %}
+secondcheck' content.id %}">{{ content.get_second_check_display }}</a></td>
+                          {% endif %} {% endcomment %}
+download' content.id %}">Download</a></td> {% endcomment %}
+                      </tr>
+                  {% endfor %}
+              </tbody>
+          </table>
+filegroup' %}" method="post">
+              
+            
+both"></div>
+              <div class="form-list">
+</label>
+                  <input type="text" id="text" value="分组名称" name="file_group" required minlength="2" maxlength="12" size="10">
+              </div>
+              {% if msg %}
+              <div class="error">{{ msg }}</div>
+              {% endif %}
+              <div class="form-list">
+                  <input id="submit_upload" class="form-button" type="submit"/>
+              </div>
+              <div class="form-list">
+                  <button class="form-button" type="button" onclick="btn_cancel()">取消</button>
+              </div>
+              {% csrf_token %}
+          </form>
+      </div>
+  {% endblock %}
+  {% block custome_js %}
+      <script>
+          function btn_cancel() {
+              location.href = "{% url 'index' %}";
+          }
+      </script>
+  {% load staticfiles %}
+  {% block title %}文件管理 - 上传文件{% endblock %}
+  {% block custome_css %}
+      <link rel="stylesheet" href=" {% static 'files/css/upload.css' %} ">
+  {% endblock %}
+
+  {% block content %}
+      <div class="content">
+          <p class="content-note1">上传文件<span class="content-note2"> (*请勿上传.exe和.bat和大于500MB的文件)</span></p>
+both"></div>
+upload' %}" method="post">
+              <div class="form-list">
+                  <input type="file" id="myfile" name="myfile" onchange="fileChange(this);" />
+              </div>
+            
+both"></div>
+              <div class="form-list">
+</label>
+                  {% comment %} <input type="text" id="text" value="未分组" name="file_group" required minlength="2" maxlength="12" size="10"> {% endcomment %}
+                  <select name="file_group">
+                      {% for content in p_contents  %}
+                      <option id="text" value="{{  content.filegroupname }}">{{  content.filegroupname }}</option>
+                      {% endfor %}
+                  </select>
+              </div>
+              {% if msg %}
+              <div class="error">{{ msg }}</div>
+              {% endif %}
+              <div class="form-list">
+                  <input id="submit_upload" class="form-button" type="submit"/>
+              </div>
+              <div class="form-list">
+                  <button class="form-button" type="button" onclick="btn_cancel()">取消</button>
+              </div>
+              {% csrf_token %}
+          </form>
+      </div>
+  {% endblock %}
+  {% block custome_js %}
+      <script>
+          function btn_cancel() {
+              location.href = "{% url 'index' %}";
+          }
+          function fileChange(target){
+              //检测上传文件的类型
+              var fileName = document.getElementById("myfile").value;
+              var upload_btn = document.getElementById("submit_upload");
+              var ext,idx;
+              idx = fileName.lastIndexOf(".");
+              if (idx !== -1){
+                  ext = fileName.substr(idx+1).toLowerCase();
+                  if (ext === 'bat' || ext === 'exe'){
+                      upload_btn.disabled=true;
+                      upload_btn.style.backgroundColor="grey";
+                      alert("不能上传.exe  .bat类型的文件!");
+                      return;
+                  } else {
+                      upload_btn.disabled=false;
+                      upload_btn.style.backgroundColor="rgba(82, 183, 109, 1)";
+                  }
+              }
+              //检测上传文件的大小
+              var isIE = /msie/i.test(navigator.userAgent) && !window.opera;
+              var fileSize = 0;
+              if (isIE && !target.files){
+                  var filePath = target.value;
+                  var fileSystem = new ActiveXObject("Scripting.FileSystemObject");
+                  var file = fileSystem.GetFile (filePath);
+                  fileSize = file.Size;
+              } else {
+                  fileSize = target.files[0].size;
+              }
+              var size = fileSize / (1024*1024);
+              if(size>500){
+                  upload_btn.disabled=true;
+                  upload_btn.style.backgroundColor="grey";
+                  alert("文件大小不能超过500MB");
+              } else {
+                  upload_btn.disabled=false;
+                  upload_btn.style.backgroundColor="rgba(82, 183, 109, 1)";
+              }
+          }
+      </script>
+  {% load staticfiles %}
+  {% block title %}文件管理 - 首页{% endblock %}
+  {% block custome_css %}{% endblock %}
+  {% block content %}
+    <div class="content">
+          <p>文件列表</p>
+          <div class="form-class"> 
+              <form action="" method="get">
+                  <input id="search" class="form-text" type="text" placeholder="搜索..." name="search" value="{% if search %}{{ search }}{% endif %}"/>
+                  <button class="form-submit" type="submit">
+                      <i class="fa fa-search" aria-hidden="true"></i>
+                  </button>
+              </form>
+          </div>
+              <button class="button-insert" id="btn_upload">上传文件</button>
+          {% if request.user.role == '3' or request.user.is_superuser == 1 %}
+              <button class="button-insert" id="btn_export">导出列表</button>
+          {% endif %}
+          <br/><br/>
+          <table class="table-list">
+              <thead>
+                  <tr>
+                      <th>序号</th>
+                      <th>文件编号</th>
+                      <th>文件名称</th>
+                      <th>上传用户</th>
+                      <th>上传时间</th>
+                      <th>文件分组</th>
+                      {% comment %} <th>初审</th>
+                      <th>二审</th>
+                      <th>终审</th> {% endcomment %}
+                      <th>下载</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  
+                  {% for content in p_contents.object_list %}
+添加一行分组标题行以作区分 {% endcomment %}
+                    {% comment %} {% if groupname != content.filegroup %}
+#e54141;" colspan="7"> {{ content.filegroup }}</td></tr>
+                      {{ groupname = content.filegroup }}
+                    {% endif %} {% endcomment %}
+                      <tr>
+start }}</td>
+                          <td>{{ content.fileno }}</td>
+                          <td>{{ content.filename }}</td>
+                          <td>{{ content.owner }}</td>
+s" }}</td>
+                          <td>{{ content.filegroup }}</td>
+                          {% comment %} {% if request.user.role == '3' and request.user.sub_role == '1' %}
+firstcheck' content.id %}">{{ content.get_first_check_display }}</a></td>
+                          {% else %}       
+                              <td>{{ content.get_first_check_display }}</td>
+                          {% endif %}
+                          {% if request.user.role == '3' and request.user.sub_role == '2' %}
+secondcheck' content.id %}">{{ content.get_second_check_display }}</a></td>
+                          {% else %}
+                              <td>{{ content.get_second_check_display }}</td>
+                          {% endif %}
+                          <td>{{ content.get_isapprove_display }}</td> {% endcomment %}
+download' content.id %}">Download</a></td>
+                      </tr>
+                  {% endfor %}
+              </tbody>
+          </table>
+          <div class="page">
+              <ul class="pagination">
+                  {% if p_contents.has_previous %}
+                      <li><a href="?{{ p_contents.previous_page_number.querystring }}">&laquo;</a></li>
+                  {% endif %}
+                  {% for page in p_contents.pages %}
+                      {% if page %}
+                          {% ifequal page p_contents.number %}
+                              <li class="active"><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                          {% else %}
+                              <li><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                          {% endifequal %}
+                      {% else %}
+                          <li>...</li>
+                      {% endif %}
+                  {% endfor %}
+                  {% if p_contents.has_next %}
+                      <li><a href="?{{ p_contents.next_page_number.querystring }}">&raquo;</a></li>
+                  {% endif %}
+              </ul>
+          </div>
+      </div>
+  {% endblock %}
+  {% block custome_js %}
+      <script>
+          var btn_upload = document.getElementById("btn_upload");
+        btn_upload.onclick = function () {
+upload' %}";
+          };
+          var btn_export = document.getElementById("btn_export");
+          btn_export.onclick = function() {
+              var search = document.getElementById("search").value;
+export' %}";
+              location.href = url + '?search=' + search;
+          }
+      </script>
+  {% endblock %}
+  {% load staticfiles %}
+  {% block title %}文件管理 - 设置{% endblock %}
+  {% block custome_css %}
+      <link rel="stylesheet" href="{% static 'files/css/upload.css' %}">
+  {% endblock %}
+
+  {% block content %}
+      <div class="content">
+          <p class="content-note1">公用电脑设置<span class="content-note2"> (多个值用逗号隔开)</span></p>
+          <p class="content-note2">*如需使用公用电脑下载文件，请先将该公用电脑IP填上</p>
+both"></div>
+public_ip' %}" method="post">
+              <div class="form-list">
+                  <span>公用电脑IP</span><input type="text" name="host_ip" value="{{ public_ip.host_ip }}"/>
+              </div>
+              {% if msg %}
+                  <div class="error">{{ msg }}</div>
+              {% endif %}
+both"></div>
+              <div class="form-list">
+                  <input class="form-button" type="submit" value="保存"/>
+              </div>
+              <div class="form-list">
+                  <button class="form-button" type="button" onclick="btn_cancel()">取消</button>
+              </div>
+              {% csrf_token %}
+          </form>
+      </div>
+  {% endblock %}
+  {% block custome_js %}
+      <script>
+          function btn_cancel() {
+              location.href = "{% url 'index' %}";
+          }
+      </script>
+lang="en">
+  {% load staticfiles %}
+  <head>
+      <meta charset="UTF-8">
+      <title>文件管理 - 登录</title>
+      <link rel="stylesheet" href="{% static 'users/css/login.css' %}">
+  </head>
+
+  <body class="login-bg">
+      <div class="login-content">
+          <div class="login-title">朔州云时代文件管理系统登录</div>
+          <form action="" method="post">
+              <input class="login-input topline {% if login_form.errors.username %}input-error{% endif %}" type="text" name="username" placeholder="用户名">
+              <input class="login-input {% if login_form.errors.password %}input-error{% endif %}" type="password" name="password" placeholder="密码">
+              {% if msg %}
+                  <div class="error">{{ msg }}</div>
+              {% endif %}
+              <input class="login-input login-submit" type="submit">
+              {% csrf_token %}
+          </form>
+      </div>
+  </body>
+>
+  {% load staticfiles %}
+  {% block title %}文件管理 - 操作日志{% endblock %}
+  {% block custome_css %}{% endblock %}
+  {% block content %}
+    <div class="content">
+          <p>操作日志</p>
+          <div class="form-class">
+              <form>
+                  <input id="search" class="form-text" type="text" placeholder="搜索..." name="search" value="{% if search %}{{ search }}{% endif %}"/>
+                  <button class="form-submit" type="submit">
+                      <i class='fa fa-search' aria-hidden='true'></i>
+                  </button>
+              </form>
+          </div>
+          <br/><br/>
+          <table class="table-list">
+              <thead>
+                  <tr>
+                      <th>序号</th>
+                      <th>工号</th>
+                      <th>人员</th>
+                      <th>操作类型</th>
+                      <th>备注</th>
+                      <th>文件编号</th>
+                      <th>文件名称</th>
+                      <th>操作时间</th>
+                  </tr>
+              </thead>
+              <tbody>
+              {% for content in p_contents.object_list %}
+                  <tr>
+start }}</td>
+                      <td>{{ content.userno }}</td>
+                      <td>{{ content.username }}</td>
+                      <td>{{ content.type }}</td>
+                      <td>{{ content.comment }}</td>
+                      <td>{{ content.fileno }}</td>
+                      <td>{{ content.filename }}</td>
+s" }}</td>
+                  </tr>
+              {% endfor %}
+              </tbody>
+          </table>
+          <div class="page">
+              <ul class="pagination">
+                  {% if p_contents.has_previous %}
+                      <li><a href="?{{ p_contents.previous_page_number.querystring }}">&laquo;</a></li>
+                  {% endif %}
+                  {% for page in p_contents.pages %}
+                      {% if page %}
+                          {% ifequal page p_contents.number %}
+                              <li class="active"><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                          {% else %}
+                              <li><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                          {% endifequal %}
+                      {% else %}
+                          <li>...</li>
+                      {% endif %}
+                  {% endfor %}
+                  {% if p_contents.has_next %}
+                      <li><a href="?{{ p_contents.next_page_number.querystring }}">&raquo;</a></li>
+                  {% endif %}
+              </ul>
+          </div>
+      </div>
+  {% endblock %}
+  {% load staticfiles %}
+  {% block title %}文件管理 - 添加人员{% endblock %}
+  {% block custome_css %}
+      <link rel="stylesheet" href="{% static 'files/css/upload.css' %}">
+  {% endblock %}
+
+  {% block content %}
+      <div class="content">
+          <p class="content-note1">添加人员<span class="content-note2"> (标注为*为必填项)</span></p>
+both"></div>
+add' %}" method="post">
+              <div class="form-list">
+                  <span>*工号</span><input {% if userinfo_form.errors.userno %}class="input-error"{% endif %} type="text" name="userno" placeholder="不超过15个字符"/>
+              </div>
+              <div class="form-list">
+                  <span>*姓名</span><input {% if userinfo_form.errors.username %}class="input-error"{% endif %} type="text" name="username" placeholder="不超过15个字符"/>
+              </div>
+              <div class="form-list">
+                  <span>部门</span><input {% if userinfo_form.errors.department %}class="input-error"{% endif %} type="text" name="department" placeholder="不超过15个字符"/>
+              </div>
+              <div class="form-list">
+                  <span>角色</span>
+                  <select name="role">
+                      <option value="3">监察稽核员</option>
+                      <option value="2">系统管理员</option>
+                      <option value="1" selected>普通员工</option>
+                      <option value="0">离职员工</option>
+                  </select>
+              </div>
+              <div class="form-list">
+                  <span>子角色</span>
+                  <select name="sub_role">
+                      <option value="2">二审员</option>
+                      <option value="1">初审员</option>
+                      <option value="0"  selected>无</option>
+                  </select>
+              </div>
+              {% if msg %}
+                  <div class="error">{{ msg }}</div>
+              {% endif %}
+both"></div>
+              <div class="form-list">
+                  <input class="form-button" type="submit"/>
+              </div>
+              <div class="form-list">
+                  <button class="form-button" type="button" onclick="btn_cancel()">取消</button>
+              </div>
+              {% csrf_token %}
+          </form>
+      </div>
+  {% endblock %}
+  {% block custome_js %}
+      <script>
+          function btn_cancel() {
+list' %}";
+          }
+      </script>
+  {% endblock %}
+  {% load staticfiles %}
+  {% block title %}文件管理 - 人员详情{% endblock %}
+  {% block custome_css %}
+      <link rel="stylesheet" href="{% static 'files/css/upload.css' %}">
+      <link rel="stylesheet" href="{% static 'files/css/detail.css' %}">
+{% endblock %}
+  {% block content %}
+      <div class="content">
+          <p class="content-note1">修改人员<span class="content-note2"> (标注为*为必填项)</span></p>
+both"></div>
+modify' %}" method="post">
+              <input type="hidden" id="user_id" name="user_id" value="{{ user.id }}"/>
+              <div class="form-list">
+                  <span>*工号</span><input {% if userinfo_form.errors.userno %}class="input-error"{% endif %} type="text" id="userno" name="userno" value="{{ user.userno }}"/>
+              </div>
+              <div class="form-list">
+                  <span>*姓名</span><input {% if userinfo_form.errors.username %}class="input-error"{% endif %} type="text" id="username" name="username" value="{{ user.username }}"/>
+              </div>
+              <div class="form-list">
+                  <span>部门</span><input {% if userinfo_form.errors.department %}class="input-error"{% endif %} type="text" name="department" value="{{ user.department }}" placeholder="不超过15个字符"/>
+              </div>
+              <div class="form-list">
+                  <span>角色</span>
+                  <select name="role">
+                      <option value="3" {% ifequal user.role '3' %}selected{% endifequal %}>监察稽核员</option>
+                      <option value="2" {% ifequal user.role '2' %}selected{% endifequal %}>系统管理员</option>
+                      <option value="1" {% ifequal user.role '1' %}selected{% endifequal %}>普通员工</option>
+                      <option value="0" {% ifequal user.role '0' %}selected{% endifequal %}>离职员工</option>
+                  </select>
+              </div>
+              <div class="form-list">
+                  <span>子角色</span>
+                  <select name="sub_role">
+                      <option value="2" {% ifequal user.sub_role '2' %}selected{% endifequal %}>二审员</option>
+                      <option value="1" {% ifequal user.sub_role '1' %}selected{% endifequal %}>初审员</option>
+                      <option value="0" {% ifequal user.sub_role '0' %}selected{% endifequal %}>无</option>
+                  </select>
+              </div>
+              {% if msg %}
+                  <div class="error">{{ msg }}</div>
+              {% endif %}
+both"></div>
+              <div class="form-list">
+                  <input class="form-button" type="submit" value="保存"/>
+              </div>
+              <div class="form-list">
+                  <button class="form-button" type="button" onclick="btn_cancel()">取消</button>
+              </div>
+              <div class="form-list">
+                  <button class="form-button form-button-pwdreset" type="button" onclick="btn_pwdreset()">重置密码</button>
+              </div>
+              {% csrf_token %}
+          </form>
+  </div>
+  {% endblock %}
+  {% block custome_js %}
+      <script>
+          function btn_cancel() {
+list' %}";
+          }
+          function btn_pwdreset() {
+              var user_id = document.getElementById("user_id").value;
+pwdreset' 0 %}";
+              location.href = url.replace('0', user_id);
+          }
+      </script>
+  {% endblock %}
+  {% load staticfiles %}
+  {% block title %}文件管理 - 人员列表{% endblock %}
+  {% block custome_css %}{% endblock %}
+  {% block content %}
+    <div class="content">
+          <p>人员列表</p>
+          <div class="form-class">
+              <form action="" method="get">
+                  <input id="search" class="form-text" type="text" placeholder="搜索..." name="search" value="{% if search %}{{ search }}{% endif %}"/>
+                  <button class="form-submit" type="submit">
+                      <i class='fa fa-search' aria-hidden='true'></i>
+                  </button>
+              </form>
+          </div>
+          <button class="button-insert" id="btn_add">添加人员</button>
+          <br/><br/>
+          <table class="table-list">
+              <thead>
+                  <tr>
+                      <th>序号</th>
+                      <th>工号</th>
+                      <th>姓名</th>
+                      <th>部门</th>
+                      <th>角色</th>
+                      <th>子角色</th>
+                      <th>添加时间</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for content in p_contents.object_list %}
+                      <tr>
+start }}</td>
+                          <td>{{ content.userno }}</td>
+detail' content.id %}">{{ content.username }}</a></td>
+                          <td>{{ content.department }}</td>
+                          <td>{{ content.get_role_display }}</td>
+                          <td>{{ content.get_sub_role_display }}</td>
+"Y-m-d" }}</td>
+                      </tr>
+                  {% endfor %}
+              </tbody>
+          </table>
+          <div class="page">
+              <ul class="pagination">
+                  {% if p_contents.has_previous %}
+                      <li><a href="?{{ p_contents.previous_page_number.querystring }}">&laquo;</a></li>
+                  {% endif %}
+                  {% for page in p_contents.pages %}
+                      {% if page %}
+                          {% ifequal page p_contents.number %}
+                              <li class="active"><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                          {% else %}
+                              <li><a href="?{{ page.querystring }}">{{ page }}</a></li>
+                          {% endifequal %}
+                      {% else %}
+                          <li>...</li>
+                      {% endif %}
+                  {% endfor %}
+                  {% if p_contents.has_next %}
+                      <li><a href="?{{ p_contents.next_page_number.querystring }}">&raquo;</a></li>
+                  {% endif %}
+              </ul>
+          </div>
+      </div>
+  {% endblock %}
+  {% block custome_js %}
+      <script>
+          var btn_add = document.getElementById("btn_add");
+          btn_add.onclick = function () {
+add' %}";
+          };
+      </script>
+  {% endblock %}
+  {% load staticfiles %}
+  {% block title %}文件管理 - 修改密码{% endblock %}
+  {% block custome_css %}
+      <link rel="stylesheet" href="{% static 'files/css/upload.css' %}">
+      <link rel="stylesheet" href="{% static 'files/css/detail.css' %}">
+{% endblock %}
+  {% block content %}
+      <div class="content">
+          <p class="content-note1">修改密码<span class="content-note2"> (标注为*为必填项)</span></p>
+both"></div>
+pwd_modify' %}" method="post">
+              <div class="form-list">
+                  <span>*新密码</span><input {% if user_pwd_modify_form.errors.pwd1 %}class="input-error"{% endif %} id="pwd1" type="password" name="pwd1" value="{{ user.pwd1 }}"/>
+              </div>
+              <div class="form-list">
+                  <span>*确认密码</span><input {% if user_pwd_modify_form.errors.pwd2 %}class="input-error"{% endif %} id="pwd2" type="password" name="pwd2" value="{{ user.pwd2 }}"/>
+              </div>
+              {% if msg %}
+                  <div class="error">{{ msg }}</div>
+              {% endif %}
+both"></div>
+              <div class="form-list">
+                  <input id="pwd_reset" class="form-button" type="submit" value="保存"/>
+              </div>
+              <div class="form-list">
+                  <button class="form-button" type="button" onclick="btn_cancel()">取消</button>
+              </div>
+              {% csrf_token %}
+          </form>
+      </div>
+  {% endblock %}
+  {% block custome_js %}
+      <script>
+          var pwd_reset = document.getElementById("pwd_reset");
+          pwd_reset.onclick = function() {
+              var pwd1 = document.getElementById("pwd1").value;
+              var pwd2 = document.getElementById("pwd2").value;
+              if(pwd1===pwd2 && !!pwd1){
+                  alert("密码修改成功，请重新登录！");
+              }
+          };
+          function btn_cancel() {
+              location.href = "{% url 'index' %}";
+          }
+      </script>
+  {% endblock %}
+lang="en">
+  {% load staticfiles %}
+  <head>
+  <meta charset="UTF-8">
+  <title>404</title>
+      <link rel="stylesheet" href="{% static 'css/error-page.css' %}">
+  </head>
+
+  <body>
+      <div class="p404">
+          <img src="{% static 'images/404.png' %}"/>
+          <br/><br/>
+          <p>wow~404错误，页面不存在~</p>
+          <a href="{% url 'index' %}">回到首页</a>
+      </div>
+  </body>
+>
+lang="en">
+  {% load staticfiles %}
+  <head>
+  <meta charset="UTF-8">
+  <title>404</title>
+      <link rel="stylesheet" href="{% static 'css/error-page.css' %}">
+  </head>
+
+  <body>
+      <div class="p404">
+          <img src="{% static 'images/500.png' %}"/>
+          <br/><br/>
+          <p>wow~500错误，服务器错误，请稍后重新刷新~</p>
+          <a href="{% url 'index' %}">回到首页</a>
+      </div>
+  </body>
+lang="en">
+  {% load staticfiles %}
+  <head>
+      <meta charset="UTF-8">
+      <title>{% block title %}{% endblock %}</title>
+      <link rel="stylesheet" href="{% static 'css/font-awesome.css' %}">
+      <link rel="stylesheet" href="{% static 'files/css/list.css' %}">
+    {% block custome_css %}{% endblock %}
+  </head>
+  <body>
+      {#导航栏#}
+      <div class="nav">
+          <div class="nav-left">朔州云时代文件管理系统</div>
+          <div class="nav-right">
+              <div class="nav-right-name">{{ request.user.username }}<i class="fa fa-caret-down" aria-hidden="true"></i>
+                  <dl class="nav-right-logout">
+pwd_modify' %}">修改密码</a></dd>
+logout' %}">退&nbsp&nbsp&nbsp&nbsp出</a></dd>
+                  </dl>
+              </div>
+          </div>
+      </div>
+      {#侧边栏#}
+      <div class="sidebar" id="sidebar">
+          <ul>
+              <li {% ifequal request.path '/' %}class="active-li"{% endifequal %}><a href="{% url 'index' %}"><i class="fa fa-table" aria-hidden="true"></i><span>文件列表</span></a></li>
+              {#仅超级管理员和系统管理员有以下四个界面#}
+              {% if request.user.role == '2' or request.user.is_superuser == 1 %}
+approvelist' %}"><i class="fa fa-list" aria-hidden="true"></i><span class="">审批列表</span></a></li>
+list' %}"><i class="fa fa-user" aria-hidden="true"></i><span class="">人员管理</span></a></li>
+public_ip' %}"><i class="fa fa-cog" aria-hidden="true"></i><span class="">设置</span></a></li> {% endcomment %}
+filegroup' %}"><i class="fa fa-table" aria-hidden="true"></i><span>文件分组</span></a></li>
+              {% endif %}
+              {% if request.user.role == '2' or request.user.role == '3' or request.user.is_superuser == 1 %}
+approvelog' %}"><i class="fa fa-bars" aria-hidden="true"></i><span class="">审批记录</span></a></li>
+              {% endif %}
+operate_log' %}"><i class="fa fa-book" aria-hidden="true"></i><span class="">操作日志</span></a></li>
+          </ul>
+      </div>
+      {#内容栏#}
+      <div class="wrapper">
+          {% block content %}{% endblock %}
+      </div>
+      {#通用js代码#}
+      <script>
+          {#调整侧边框的高度，下面的48是导航栏的高度#}
+          var sidebar = document.getElementById("sidebar");
+window.innerHeight-48;
+          sidebar.style.height = content_height+'px';
+      </script>
+      {#不同页面自定义js代码#}
+      {% block custome_js %}{% endblock %}
+  </body>
+>
+
+    background: red;
+}
+
+.form-list .form-button-pwdreset{
+    background: #aa0b0b;
+}
+
+.form-list .form-button{
+  margin: 25px 0 0 30px;
+
+    text-align: center;
+}
+
+.table-left, .table-middle, .table-right{
+    float:left;
+    width:35%;
+    height: 100%;
+    margin-right: 10px;
+}
+
+.table-left th{
+    background-color:#666;
+}
+
+.table-middle th{
+    background-color: #009;
+}
+
+.table-right th{
+    background-color: #060;
+}
+
+.table-line{
+    width: 20%;
+}
+
+    margin: 0;
+    padding:0;
+}
+
+a{
+    text-decoration: none;
+    color: #fff;
+}
+
+li{
+    list-style-type: none;
+}
+
+button:hover{
+    cursor: pointer
+}
+
+.nav{
+    width: 100%;
+    height: 48px;
+    background: linear-gradient(to left, rgba(1, 170, 237, 1), rgba(82, 183, 109, 1));
+}
+
+.nav-left{
+    font-size: 16px;
+    color: #fff;
+    width: 180px;
+    line-height: 48px;
+    text-align: center;
+    float: left;
+}
+
+.nav-right-name{
+    font-size: 14px;
+    color: #fff;
+    width: 120px;
+    line-height: 48px;
+    text-align: center;
+    float: right;
+}
+
+.nav-right-logout{
+    display: none;
+    width: 100px;
+    /* height: 80px; */
+    background: rgba(57, 61, 73, 0.9);
+    position: absolute;
+    right: 10px;
+    top: 48px;
+    line-height: 40px;
+    text-align: center;
+    border-radius: 10px;
+    border: 1px solid grey;
+}
+
+.nav-right-logout dd:hover{
+    background:  #1e9fff;
+}
+
+.nav-right-logout a{
+    color: #fff;
+}
+
+.nav-right-name:hover .nav-right-logout{
+    display: block;
+}
+
+.sidebar{
+    font-size: 14px;
+    float: left;
+    background: rgba(57, 61, 73, 0.9);
+    width: 150px;
+    position: absolute;
+    top: 48px;
+    bottom: 0;
+    left: 0;
+}
+
+.sidebar ul li{
+    padding-left: 30px;
+    line-height: 40px;
+}
+
+.sidebar ul li a{
+    color: #fff;
+}
+
+.sidebar .active-li, .sidebar ul li:hover{
+    background: #1e9fff;
+}
+
+.sidebar ul li span{
+    padding: 10px;
+}
+
+.wrapper{
+    min-height: 95%;
+    margin-left: 150px;
+  overflow: auto;
+}
+
+.content{
+    padding: 10px 15px 7px 15px;
+    background-color: #fff;
+}
+
+.content p{
+    float: left;
+    font-size: 16px;
+    height: 30px;
+    line-height: 30px;
+}
+
+.form-class{
+    float: left;
+    width: 300px;
+    height: 30px;
+    text-align: center;
+    line-height: 30px;
+}
+
+.form-text{
+    height: 22px;
+}
+
+.form-submit{
+    font-size: 20px;
+    vertical-align: -2px;
+    width: 30px;
+}
+
+.button-insert{
+    float: left;
+    width: 100px;
+    margin: 0 5px;
+    height: 30px;
+    text-align: center;
+    background: rgba(82, 183, 109, 1);
+    color: #fff;
+    border-radius: 10px;
+}
+
+.button-download{
+    background: #aa0b0b;
+}
+
+.table-list{
+    width: 100%;
+    word-break: break-all;
+}
+
+.type-list{
+    width: 400px;
+}
+
+table, td, th {
+    border: 1px solid #ccc;
+    border-collapse: collapse;
+    line-height: 1.8em;
+    font-size: 14px;
+    text-align: center;
+}
+
+.more-text{
+    overflow: hidden;
+    max-height: 60px;
+}
+
+th{
+    background-color:#666;
+    color:white;
+}
+
+td{
+    padding-left: 2px;
+    max-width: 120px;
+    min-width: 20px;
+}
+
+td a{
+    color: blue;
+}
+
+.check{
+    display: block;
+    margin: 0 auto;
+    vertical-align: middle;
+    width: 18px;
+    height: 18px;
+}
+
+.page{
+    width:600px;
+    padding-top: 10px;
+    text-align: center;
+    margin: 0 auto;
+}
+
+.pagination li{
+    display: inline-block;
+    background: #fff;
+    padding: 5px;
+    min-width: 15px;
+    border: 1px solid #E2E2E2;
+}
+
+.pagination li a{
+    color: #222;
+}
+
+.pagination .active{
+    background: #1e9fff;
+
+    clear: both;
+    font-size: 18px;
+    width:650px;
+    height: 30px;
+    text-align: center;
+}
+
+.wrapper .content-note2{
+  font-size: 14px;
+}
+
+.form-table{
+    width: 650px;
+    padding: 10px 0 80px 0;
+    border-radius: 10px;
+    background: #f1f1f1;
+    color: #000;
+    margin-top: 10px;
+}
+
+.form-list{
+    width: 600px;
+    /*text-align: center;*/
+    padding-left: 50px;
+    line-height: 35px;
+}
+
+.form-list span{
+    display: inline-block;
+    text-align: left;
+    width: 100px;
+    font-size: 14px;
+}
+
+.comment{
+    vertical-align: top;
+}
+
+.form-list input,.form-list select{
+    width: 400px;
+    height: 25px;
+}
+
+.form-list .input-error{
+    border-color: #f00;
+    box-shadow: 0 0 3px #aa0b0b;
+}
+
+.form-list .form-button{
+    margin: 25px 0 0 50px;
+    float: left;
+    width: 100px;
+    height: 30px;
+    border-radius: 10px;
+    background: rgba(82, 183, 109, 1);
+    color: #fff;
+    cursor: pointer;
+}
+
+.form-list select{
+    width: 404px;
+    height: 29px;
+    margin-left: -5px;
+}
+
+.error{
+    font-size: 14px;
+    position: relative;
+    float: left;
+    left: 110px;
+    top: 10px;
+    color: red;
+}
+
+.textarea{
+    margin-top: 6px;
+    width: 402px;
+    height: 65px;
+}
+
+    margin: 0;
+    padding: 0;
+}
+
+.login-bg{
+    background: url('../images/login-bg.png') no-repeat;
+    background-size: cover;
+}
+
+.login-content{
+    height: 340px;
+    width: 420px;
+    margin: 105px auto 0;
+    background: #fff;
+    padding: 40px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.login-title{
+    width: 400px;
+    height: 50px;
+    line-height: 50px;
+    font-size: 24px;
+    color: #fff;
+    margin: 10px 0 10px 0;
+    padding: 10px;
+    background: rgb(24, 159, 146);
+}
+
+.login-input{
+    display: block;
+    width: 300px;
+    height: 40px;
+    margin: 20px auto;
+}
+
+.topline{
+    margin: 50px auto 0;
+}
+
+.login-submit{
+    margin-top: 60px;
+    cursor: pointer;
+}
+
+.input-error{
+    border-color: #f00;
+    box-shadow: 0 0 3px #aa0b0b;
+}
+
+.error{
+    font-size:14px;
+    position: relative;
+    float: left;
+    left: 110px;
+    color: red;
+
+    margin-top: 80px;
+    text-align: center;
+
+*  Font Awesome 4.7.0 by @davegandy - http://fontawesome.io - @fontawesome
+: MIT License)
+*/
+/* FONT PATH
+* -------------------------- */
+@font-face {
+  font-family: 'FontAwesome';
+  src: url('../fonts/fontawesome-webfont.eot?v=4.7.0');
+src: url('../fonts/fontawesome-webfont.eot?#iefix&v=4.7.0') format('embedded-opentype'), url('../fonts/fontawesome-webfont.woff2?v=4.7.0') format('woff2'), url('../fonts/fontawesome-webfont.woff?v=4.7.0') format('woff'), url('../fonts/fontawesome-webfont.ttf?v=4.7.0') format('truetype'), url('../fonts/fontawesome-webfont.svg?v=4.7.0#fontawesomeregular') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+.fa {
+  display: inline-block;
+  font: normal normal normal 14px/1 FontAwesome;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+/* makes the font 33% larger relative to the icon container */
+.fa-lg {
+  font-size: 1.33333333em;
+  line-height: 0.75em;
+  vertical-align: -15%;
+}
+.fa-2x {
+  font-size: 2em;
+}
+.fa-3x {
+  font-size: 3em;
+}
+.fa-4x {
+  font-size: 4em;
+}
+.fa-5x {
+  font-size: 5em;
+}
+.fa-fw {
+  width: 1.28571429em;
+  text-align: center;
+}
+.fa-ul {
+  padding-left: 0;
+  margin-left: 2.14285714em;
+  list-style-type: none;
+}
+.fa-ul > li {
+  position: relative;
+}
+.fa-li {
+  position: absolute;
+  left: -2.14285714em;
+  width: 2.14285714em;
+  top: 0.14285714em;
+  text-align: center;
+}
+.fa-li.fa-lg {
+  left: -1.85714286em;
+}
+.fa-border {
+  padding: .2em .25em .15em;
+  border: solid 0.08em #eeeeee;
+  border-radius: .1em;
+}
+.fa-pull-left {
+  float: left;
+}
+.fa-pull-right {
+  float: right;
+}
+.fa.fa-pull-left {
+  margin-right: .3em;
+}
+.fa.fa-pull-right {
+  margin-left: .3em;
+}
+/* Deprecated as of 4.4.0 */
+.pull-right {
+  float: right;
+}
+.pull-left {
+  float: left;
+}
+.fa.pull-left {
+  margin-right: .3em;
+}
+.fa.pull-right {
+  margin-left: .3em;
+}
+.fa-spin {
+  -webkit-animation: fa-spin 2s infinite linear;
+  animation: fa-spin 2s infinite linear;
+}
+.fa-pulse {
+  -webkit-animation: fa-spin 1s infinite steps(8);
+  animation: fa-spin 1s infinite steps(8);
+}
+@-webkit-keyframes fa-spin {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+}
+@keyframes fa-spin {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+}
+.fa-rotate-90 {
+  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=1)";
+  -webkit-transform: rotate(90deg);
+  -ms-transform: rotate(90deg);
+  transform: rotate(90deg);
+}
+.fa-rotate-180 {
+  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=2)";
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+.fa-rotate-270 {
+  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=3)";
+  -webkit-transform: rotate(270deg);
+  -ms-transform: rotate(270deg);
+  transform: rotate(270deg);
+}
+.fa-flip-horizontal {
+  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0, mirror=1)";
+  -webkit-transform: scale(-1, 1);
+  -ms-transform: scale(-1, 1);
+  transform: scale(-1, 1);
+}
+.fa-flip-vertical {
+  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)";
+  -webkit-transform: scale(1, -1);
+  -ms-transform: scale(1, -1);
+  transform: scale(1, -1);
+}
+:root .fa-rotate-90,
+:root .fa-rotate-180,
+:root .fa-rotate-270,
+:root .fa-flip-horizontal,
+:root .fa-flip-vertical {
+  filter: none;
+}
+.fa-stack {
+  position: relative;
+  display: inline-block;
+  width: 2em;
+  height: 2em;
+  line-height: 2em;
+  vertical-align: middle;
+}
+.fa-stack-1x,
+.fa-stack-2x {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  text-align: center;
+}
+.fa-stack-1x {
+  line-height: inherit;
+}
+.fa-stack-2x {
+  font-size: 2em;
+}
+.fa-inverse {
+  color: #ffffff;
+}
+/* Font Awesome uses the Unicode Private Use Area (PUA) to ensure screen
+  readers do not read off random characters that represent icons */
+.fa-glass:before {
+  content: "\f000";
+}
+.fa-music:before {
+  content: "\f001";
+}
+.fa-search:before {
+  content: "\f002";
+}
+.fa-envelope-o:before {
+  content: "\f003";
+}
+.fa-heart:before {
+  content: "\f004";
+}
+.fa-star:before {
+  content: "\f005";
+}
+.fa-star-o:before {
+  content: "\f006";
+}
+.fa-user:before {
+  content: "\f007";
+}
+.fa-film:before {
+  content: "\f008";
+}
+.fa-th-large:before {
+  content: "\f009";
+}
+.fa-th:before {
+  content: "\f00a";
+}
+.fa-th-list:before {
+  content: "\f00b";
+}
+.fa-check:before {
+  content: "\f00c";
+}
+.fa-remove:before,
+.fa-close:before,
+.fa-times:before {
+  content: "\f00d";
+}
+.fa-search-plus:before {
+  content: "\f00e";
+}
+.fa-search-minus:before {
+  content: "\f010";
+}
+.fa-power-off:before {
+  content: "\f011";
+}
+.fa-signal:before {
+  content: "\f012";
+}
+.fa-gear:before,
+.fa-cog:before {
+  content: "\f013";
+}
+.fa-trash-o:before {
+  content: "\f014";
+}
+.fa-home:before {
+  content: "\f015";
+}
+.fa-file-o:before {
+  content: "\f016";
+}
+.fa-clock-o:before {
+  content: "\f017";
+}
+.fa-road:before {
+  content: "\f018";
+}
+.fa-download:before {
+  content: "\f019";
+}
+.fa-arrow-circle-o-down:before {
+  content: "\f01a";
+}
+.fa-arrow-circle-o-up:before {
+  content: "\f01b";
+}
+.fa-inbox:before {
+  content: "\f01c";
+}
+.fa-play-circle-o:before {
+  content: "\f01d";
+}
+.fa-rotate-right:before,
+.fa-repeat:before {
+  content: "\f01e";
+}
+.fa-refresh:before {
+  content: "\f021";
+}
+.fa-list-alt:before {
+  content: "\f022";
+}
+.fa-lock:before {
+  content: "\f023";
+}
+.fa-flag:before {
+  content: "\f024";
+}
+.fa-headphones:before {
+  content: "\f025";
+}
+.fa-volume-off:before {
+  content: "\f026";
+}
+.fa-volume-down:before {
+  content: "\f027";
+}
+.fa-volume-up:before {
+  content: "\f028";
+}
+.fa-qrcode:before {
+  content: "\f029";
+}
+.fa-barcode:before {
+  content: "\f02a";
+}
+.fa-tag:before {
+  content: "\f02b";
+}
+.fa-tags:before {
+  content: "\f02c";
+}
+.fa-book:before {
+  content: "\f02d";
+}
+.fa-bookmark:before {
+  content: "\f02e";
+}
+.fa-print:before {
+  content: "\f02f";
+}
+.fa-camera:before {
+  content: "\f030";
+}
+.fa-font:before {
+  content: "\f031";
+}
+.fa-bold:before {
+  content: "\f032";
+}
+.fa-italic:before {
+  content: "\f033";
+}
+.fa-text-height:before {
+  content: "\f034";
+}
+.fa-text-width:before {
+  content: "\f035";
+}
+.fa-align-left:before {
+  content: "\f036";
+}
+.fa-align-center:before {
+  content: "\f037";
+}
+.fa-align-right:before {
+  content: "\f038";
+}
+.fa-align-justify:before {
+  content: "\f039";
+}
+.fa-list:before {
+  content: "\f03a";
+}
+.fa-dedent:before,
+.fa-outdent:before {
+  content: "\f03b";
+}
+.fa-indent:before {
+  content: "\f03c";
+}
+.fa-video-camera:before {
+  content: "\f03d";
+}
+.fa-photo:before,
+.fa-image:before,
+.fa-picture-o:before {
+  content: "\f03e";
+}
+.fa-pencil:before {
+  content: "\f040";
+}
+.fa-map-marker:before {
+  content: "\f041";
+}
+.fa-adjust:before {
+  content: "\f042";
+}
+.fa-tint:before {
+  content: "\f043";
+}
+.fa-edit:before,
+.fa-pencil-square-o:before {
+  content: "\f044";
+}
+.fa-share-square-o:before {
+  content: "\f045";
+}
+.fa-check-square-o:before {
+  content: "\f046";
+}
+.fa-arrows:before {
+  content: "\f047";
+}
+.fa-step-backward:before {
+  content: "\f048";
+}
+.fa-fast-backward:before {
+  content: "\f049";
+}
+.fa-backward:before {
+  content: "\f04a";
+}
+.fa-play:before {
+  content: "\f04b";
+}
+.fa-pause:before {
+  content: "\f04c";
+}
+.fa-stop:before {
+  content: "\f04d";
+}
+.fa-forward:before {
+  content: "\f04e";
+}
+.fa-fast-forward:before {
+  content: "\f050";
+}
+.fa-step-forward:before {
+  content: "\f051";
+}
+.fa-eject:before {
+  content: "\f052";
+}
+.fa-chevron-left:before {
+  content: "\f053";
+}
+.fa-chevron-right:before {
+  content: "\f054";
+}
+.fa-plus-circle:before {
+  content: "\f055";
+}
+.fa-minus-circle:before {
+  content: "\f056";
+}
+.fa-times-circle:before {
+  content: "\f057";
+}
+.fa-check-circle:before {
+  content: "\f058";
+}
+.fa-question-circle:before {
+  content: "\f059";
+}
+.fa-info-circle:before {
+  content: "\f05a";
+}
+.fa-crosshairs:before {
+  content: "\f05b";
+}
+.fa-times-circle-o:before {
+  content: "\f05c";
+}
+.fa-check-circle-o:before {
+  content: "\f05d";
+}
+.fa-ban:before {
+  content: "\f05e";
+}
+.fa-arrow-left:before {
+  content: "\f060";
+}
+.fa-arrow-right:before {
+  content: "\f061";
+}
+.fa-arrow-up:before {
+  content: "\f062";
+}
+.fa-arrow-down:before {
+  content: "\f063";
+}
+.fa-mail-forward:before,
+.fa-share:before {
+  content: "\f064";
+}
+.fa-expand:before {
+  content: "\f065";
+}
+.fa-compress:before {
+  content: "\f066";
+}
+.fa-plus:before {
+  content: "\f067";
+}
+.fa-minus:before {
+  content: "\f068";
+}
+.fa-asterisk:before {
+  content: "\f069";
+}
+.fa-exclamation-circle:before {
+  content: "\f06a";
+}
+.fa-gift:before {
+  content: "\f06b";
+}
+.fa-leaf:before {
+  content: "\f06c";
+}
+.fa-fire:before {
+  content: "\f06d";
+}
+.fa-eye:before {
+  content: "\f06e";
+}
+.fa-eye-slash:before {
+  content: "\f070";
+}
+.fa-warning:before,
+.fa-exclamation-triangle:before {
+  content: "\f071";
+}
+.fa-plane:before {
+  content: "\f072";
+}
+.fa-calendar:before {
+  content: "\f073";
+}
+.fa-random:before {
+  content: "\f074";
+}
+.fa-comment:before {
+  content: "\f075";
+}
+.fa-magnet:before {
+  content: "\f076";
+}
+.fa-chevron-up:before {
+  content: "\f077";
+}
+.fa-chevron-down:before {
+  content: "\f078";
+}
+.fa-retweet:before {
+  content: "\f079";
+}
+.fa-shopping-cart:before {
+  content: "\f07a";
+}
+.fa-folder:before {
+  content: "\f07b";
+}
+.fa-folder-open:before {
+  content: "\f07c";
+}
+.fa-arrows-v:before {
+  content: "\f07d";
+}
+.fa-arrows-h:before {
+  content: "\f07e";
+}
+.fa-bar-chart-o:before,
+.fa-bar-chart:before {
+  content: "\f080";
+}
+.fa-twitter-square:before {
+  content: "\f081";
+}
+.fa-facebook-square:before {
+  content: "\f082";
+}
+.fa-camera-retro:before {
+  content: "\f083";
+}
+.fa-key:before {
+  content: "\f084";
+}
+.fa-gears:before,
+.fa-cogs:before {
+  content: "\f085";
+}
+.fa-comments:before {
+  content: "\f086";
+}
+.fa-thumbs-o-up:before {
+  content: "\f087";
+}
+.fa-thumbs-o-down:before {
+  content: "\f088";
+}
+.fa-star-half:before {
+  content: "\f089";
+}
+.fa-heart-o:before {
+  content: "\f08a";
+}
+.fa-sign-out:before {
+  content: "\f08b";
+}
+.fa-linkedin-square:before {
+  content: "\f08c";
+}
+.fa-thumb-tack:before {
+  content: "\f08d";
+}
+.fa-external-link:before {
+  content: "\f08e";
+}
+.fa-sign-in:before {
+  content: "\f090";
+}
+.fa-trophy:before {
+  content: "\f091";
+}
+.fa-github-square:before {
+  content: "\f092";
+}
+.fa-upload:before {
+  content: "\f093";
+}
+.fa-lemon-o:before {
+  content: "\f094";
+}
+.fa-phone:before {
+  content: "\f095";
+}
+.fa-square-o:before {
+  content: "\f096";
+}
+.fa-bookmark-o:before {
+  content: "\f097";
+}
+.fa-phone-square:before {
+  content: "\f098";
+}
+.fa-twitter:before {
+  content: "\f099";
+}
+.fa-facebook-f:before,
+.fa-facebook:before {
+  content: "\f09a";
+}
+.fa-github:before {
+  content: "\f09b";
+}
+.fa-unlock:before {
+  content: "\f09c";
+}
+.fa-credit-card:before {
+  content: "\f09d";
+}
+.fa-feed:before,
+.fa-rss:before {
+  content: "\f09e";
+}
+.fa-hdd-o:before {
+  content: "\f0a0";
+}
+.fa-bullhorn:before {
+  content: "\f0a1";
+}
+.fa-bell:before {
+  content: "\f0f3";
+}
+.fa-certificate:before {
+  content: "\f0a3";
+}
+.fa-hand-o-right:before {
+  content: "\f0a4";
+}
+.fa-hand-o-left:before {
+  content: "\f0a5";
+}
+.fa-hand-o-up:before {
+  content: "\f0a6";
+}
+.fa-hand-o-down:before {
+  content: "\f0a7";
+}
+.fa-arrow-circle-left:before {
+  content: "\f0a8";
+}
+.fa-arrow-circle-right:before {
+  content: "\f0a9";
+}
+.fa-arrow-circle-up:before {
+  content: "\f0aa";
+}
+.fa-arrow-circle-down:before {
+  content: "\f0ab";
+}
+.fa-globe:before {
+  content: "\f0ac";
+}
+.fa-wrench:before {
+  content: "\f0ad";
+}
+.fa-tasks:before {
+  content: "\f0ae";
+}
+.fa-filter:before {
+  content: "\f0b0";
+}
+.fa-briefcase:before {
+  content: "\f0b1";
+}
+.fa-arrows-alt:before {
+  content: "\f0b2";
+}
+.fa-group:before,
+.fa-users:before {
+  content: "\f0c0";
+}
+.fa-chain:before,
+.fa-link:before {
+  content: "\f0c1";
+}
+.fa-cloud:before {
+  content: "\f0c2";
+}
+.fa-flask:before {
+  content: "\f0c3";
+}
+.fa-cut:before,
+.fa-scissors:before {
+  content: "\f0c4";
+}
+.fa-copy:before,
+.fa-files-o:before {
+  content: "\f0c5";
+}
+.fa-paperclip:before {
+  content: "\f0c6";
+}
+.fa-save:before,
+.fa-floppy-o:before {
+  content: "\f0c7";
+}
+.fa-square:before {
+  content: "\f0c8";
+}
+.fa-navicon:before,
+.fa-reorder:before,
+.fa-bars:before {
+  content: "\f0c9";
+}
+.fa-list-ul:before {
+  content: "\f0ca";
+}
+.fa-list-ol:before {
+  content: "\f0cb";
+}
+.fa-strikethrough:before {
+  content: "\f0cc";
+}
+.fa-underline:before {
+  content: "\f0cd";
+}
+.fa-table:before {
+  content: "\f0ce";
+}
+.fa-magic:before {
+  content: "\f0d0";
+}
+.fa-truck:before {
+  content: "\f0d1";
+}
+.fa-pinterest:before {
+  content: "\f0d2";
+}
+.fa-pinterest-square:before {
+  content: "\f0d3";
+}
+.fa-google-plus-square:before {
+  content: "\f0d4";
+}
+.fa-google-plus:before {
+  content: "\f0d5";
+}
+.fa-money:before {
+  content: "\f0d6";
+}
+.fa-caret-down:before {
+  content: "\f0d7";
+}
+.fa-caret-up:before {
+  content: "\f0d8";
+}
+.fa-caret-left:before {
+  content: "\f0d9";
+}
+.fa-caret-right:before {
+  content: "\f0da";
+}
+.fa-columns:before {
+  content: "\f0db";
+}
+.fa-unsorted:before,
+.fa-sort:before {
+  content: "\f0dc";
+}
+.fa-sort-down:before,
+.fa-sort-desc:before {
+  content: "\f0dd";
+}
+.fa-sort-up:before,
+.fa-sort-asc:before {
+  content: "\f0de";
+}
+.fa-envelope:before {
+  content: "\f0e0";
+}
+.fa-linkedin:before {
+  content: "\f0e1";
+}
+.fa-rotate-left:before,
+.fa-undo:before {
+  content: "\f0e2";
+}
+.fa-legal:before,
+.fa-gavel:before {
+  content: "\f0e3";
+}
+.fa-dashboard:before,
+.fa-tachometer:before {
+  content: "\f0e4";
+}
+.fa-comment-o:before {
+  content: "\f0e5";
+}
+.fa-comments-o:before {
+  content: "\f0e6";
+}
+.fa-flash:before,
+.fa-bolt:before {
+  content: "\f0e7";
+}
+.fa-sitemap:before {
+  content: "\f0e8";
+}
+.fa-umbrella:before {
+  content: "\f0e9";
+}
+.fa-paste:before,
+.fa-clipboard:before {
+  content: "\f0ea";
+}
+.fa-lightbulb-o:before {
+  content: "\f0eb";
+}
+.fa-exchange:before {
+  content: "\f0ec";
+}
+.fa-cloud-download:before {
+  content: "\f0ed";
+}
+.fa-cloud-upload:before {
+  content: "\f0ee";
+}
+.fa-user-md:before {
+  content: "\f0f0";
+}
+.fa-stethoscope:before {
+  content: "\f0f1";
+}
+.fa-suitcase:before {
+  content: "\f0f2";
+}
+.fa-bell-o:before {
+  content: "\f0a2";
+}
+.fa-coffee:before {
+  content: "\f0f4";
+}
+.fa-cutlery:before {
+  content: "\f0f5";
+}
+.fa-file-text-o:before {
+  content: "\f0f6";
+}
+.fa-building-o:before {
+  content: "\f0f7";
+}
+.fa-hospital-o:before {
+  content: "\f0f8";
+}
+.fa-ambulance:before {
+  content: "\f0f9";
+}
+.fa-medkit:before {
+  content: "\f0fa";
+}
+.fa-fighter-jet:before {
+  content: "\f0fb";
+}
+.fa-beer:before {
+  content: "\f0fc";
+}
+.fa-h-square:before {
+  content: "\f0fd";
+}
+.fa-plus-square:before {
+  content: "\f0fe";
+}
+.fa-angle-double-left:before {
+  content: "\f100";
+}
+.fa-angle-double-right:before {
+  content: "\f101";
+}
+.fa-angle-double-up:before {
+  content: "\f102";
+}
+.fa-angle-double-down:before {
+  content: "\f103";
+}
+.fa-angle-left:before {
+  content: "\f104";
+}
+.fa-angle-right:before {
+  content: "\f105";
+}
+.fa-angle-up:before {
+  content: "\f106";
+}
+.fa-angle-down:before {
+  content: "\f107";
+}
+.fa-desktop:before {
+  content: "\f108";
+}
+.fa-laptop:before {
+  content: "\f109";
+}
+.fa-tablet:before {
+  content: "\f10a";
+}
+.fa-mobile-phone:before,
+.fa-mobile:before {
+  content: "\f10b";
+}
+.fa-circle-o:before {
+  content: "\f10c";
+}
+.fa-quote-left:before {
+  content: "\f10d";
+}
+.fa-quote-right:before {
+  content: "\f10e";
+}
+.fa-spinner:before {
+  content: "\f110";
+}
+.fa-circle:before {
+  content: "\f111";
+}
+.fa-mail-reply:before,
+.fa-reply:before {
+  content: "\f112";
+}
+.fa-github-alt:before {
+  content: "\f113";
+}
+.fa-folder-o:before {
+  content: "\f114";
+}
+.fa-folder-open-o:before {
+  content: "\f115";
+}
+.fa-smile-o:before {
+  content: "\f118";
+}
+.fa-frown-o:before {
+  content: "\f119";
+}
+.fa-meh-o:before {
+  content: "\f11a";
+}
+.fa-gamepad:before {
+  content: "\f11b";
+}
+.fa-keyboard-o:before {
+  content: "\f11c";
+}
+.fa-flag-o:before {
+  content: "\f11d";
+}
+.fa-flag-checkered:before {
+  content: "\f11e";
+}
+.fa-terminal:before {
+  content: "\f120";
+}
+.fa-code:before {
+  content: "\f121";
+}
+.fa-mail-reply-all:before,
+.fa-reply-all:before {
+  content: "\f122";
+}
+.fa-star-half-empty:before,
+.fa-star-half-full:before,
+.fa-star-half-o:before {
+  content: "\f123";
+}
+.fa-location-arrow:before {
+  content: "\f124";
+}
+.fa-crop:before {
+  content: "\f125";
+}
+.fa-code-fork:before {
+  content: "\f126";
+}
+.fa-unlink:before,
+.fa-chain-broken:before {
+  content: "\f127";
+}
+.fa-question:before {
+  content: "\f128";
+}
+.fa-info:before {
+  content: "\f129";
+}
+.fa-exclamation:before {
+  content: "\f12a";
+}
+.fa-superscript:before {
+  content: "\f12b";
+}
+.fa-subscript:before {
+  content: "\f12c";
+}
+.fa-eraser:before {
+  content: "\f12d";
+}
+.fa-puzzle-piece:before {
+  content: "\f12e";
+}
+.fa-microphone:before {
+  content: "\f130";
+}
+.fa-microphone-slash:before {
+  content: "\f131";
+}
+.fa-shield:before {
+  content: "\f132";
+}
+.fa-calendar-o:before {
+  content: "\f133";
+}
+.fa-fire-extinguisher:before {
+  content: "\f134";
+}
+.fa-rocket:before {
+  content: "\f135";
+}
+.fa-maxcdn:before {
+  content: "\f136";
+}
+.fa-chevron-circle-left:before {
+  content: "\f137";
+}
+.fa-chevron-circle-right:before {
+  content: "\f138";
+}
+.fa-chevron-circle-up:before {
+  content: "\f139";
+}
+.fa-chevron-circle-down:before {
+  content: "\f13a";
+}
+before {
+  content: "\f13b";
+}
+before {
+  content: "\f13c";
+}
+.fa-anchor:before {
+  content: "\f13d";
+}
+.fa-unlock-alt:before {
+  content: "\f13e";
+}
+.fa-bullseye:before {
+  content: "\f140";
+}
+.fa-ellipsis-h:before {
+  content: "\f141";
+}
+.fa-ellipsis-v:before {
+  content: "\f142";
+}
+.fa-rss-square:before {
+  content: "\f143";
+}
+.fa-play-circle:before {
+  content: "\f144";
+}
+.fa-ticket:before {
+  content: "\f145";
+}
+.fa-minus-square:before {
+  content: "\f146";
+}
+.fa-minus-square-o:before {
+  content: "\f147";
+}
+.fa-level-up:before {
+  content: "\f148";
+}
+.fa-level-down:before {
+  content: "\f149";
+}
+.fa-check-square:before {
+  content: "\f14a";
+}
+.fa-pencil-square:before {
+  content: "\f14b";
+}
+.fa-external-link-square:before {
+  content: "\f14c";
+}
+.fa-share-square:before {
+  content: "\f14d";
+}
+.fa-compass:before {
+  content: "\f14e";
+}
+.fa-toggle-down:before,
+.fa-caret-square-o-down:before {
+  content: "\f150";
+}
+.fa-toggle-up:before,
+.fa-caret-square-o-up:before {
+  content: "\f151";
+}
+.fa-toggle-right:before,
+.fa-caret-square-o-right:before {
+  content: "\f152";
+}
+.fa-euro:before,
+.fa-eur:before {
+  content: "\f153";
+}
+.fa-gbp:before {
+  content: "\f154";
+}
+.fa-dollar:before,
+.fa-usd:before {
+  content: "\f155";
+}
+.fa-rupee:before,
+.fa-inr:before {
+  content: "\f156";
+}
+.fa-cny:before,
+.fa-rmb:before,
+.fa-yen:before,
+.fa-jpy:before {
+  content: "\f157";
+}
+.fa-ruble:before,
+.fa-rouble:before,
+.fa-rub:before {
+  content: "\f158";
+}
+.fa-won:before,
+.fa-krw:before {
+  content: "\f159";
+}
+.fa-bitcoin:before,
+.fa-btc:before {
+  content: "\f15a";
+}
+.fa-file:before {
+  content: "\f15b";
+}
+.fa-file-text:before {
+  content: "\f15c";
+}
+.fa-sort-alpha-asc:before {
+  content: "\f15d";
+}
+.fa-sort-alpha-desc:before {
+  content: "\f15e";
+}
+.fa-sort-amount-asc:before {
+  content: "\f160";
+}
+.fa-sort-amount-desc:before {
+  content: "\f161";
+}
+.fa-sort-numeric-asc:before {
+  content: "\f162";
+}
+.fa-sort-numeric-desc:before {
+  content: "\f163";
+}
+.fa-thumbs-up:before {
+  content: "\f164";
+}
+.fa-thumbs-down:before {
+  content: "\f165";
+}
+.fa-youtube-square:before {
+  content: "\f166";
+}
+.fa-youtube:before {
+  content: "\f167";
+}
+.fa-xing:before {
+  content: "\f168";
+}
+.fa-xing-square:before {
+  content: "\f169";
+}
+.fa-youtube-play:before {
+  content: "\f16a";
+}
+.fa-dropbox:before {
+  content: "\f16b";
+}
+.fa-stack-overflow:before {
+  content: "\f16c";
+}
+.fa-instagram:before {
+  content: "\f16d";
+}
+.fa-flickr:before {
+  content: "\f16e";
+}
+.fa-adn:before {
+  content: "\f170";
+}
+.fa-bitbucket:before {
+  content: "\f171";
+}
+.fa-bitbucket-square:before {
+  content: "\f172";
+}
+.fa-tumblr:before {
+  content: "\f173";
+}
+.fa-tumblr-square:before {
+  content: "\f174";
+}
+.fa-long-arrow-down:before {
+  content: "\f175";
+}
+.fa-long-arrow-up:before {
+  content: "\f176";
+}
+.fa-long-arrow-left:before {
+  content: "\f177";
+}
+.fa-long-arrow-right:before {
+  content: "\f178";
+}
+.fa-apple:before {
+  content: "\f179";
+}
+.fa-windows:before {
+  content: "\f17a";
+}
+.fa-android:before {
+  content: "\f17b";
+}
+.fa-linux:before {
+  content: "\f17c";
+}
+.fa-dribbble:before {
+  content: "\f17d";
+}
+.fa-skype:before {
+  content: "\f17e";
+}
+.fa-foursquare:before {
+  content: "\f180";
+}
+.fa-trello:before {
+  content: "\f181";
+}
+.fa-female:before {
+  content: "\f182";
+}
+.fa-male:before {
+  content: "\f183";
+}
+.fa-gittip:before,
+.fa-gratipay:before {
+  content: "\f184";
+}
+.fa-sun-o:before {
+  content: "\f185";
+}
+.fa-moon-o:before {
+  content: "\f186";
+}
+.fa-archive:before {
+  content: "\f187";
+}
+.fa-bug:before {
+  content: "\f188";
+}
+.fa-vk:before {
+  content: "\f189";
+}
+.fa-weibo:before {
+  content: "\f18a";
+}
+.fa-renren:before {
+  content: "\f18b";
+}
+.fa-pagelines:before {
+  content: "\f18c";
+}
+.fa-stack-exchange:before {
+  content: "\f18d";
+}
+.fa-arrow-circle-o-right:before {
+  content: "\f18e";
+}
+.fa-arrow-circle-o-left:before {
+  content: "\f190";
+}
+.fa-toggle-left:before,
+.fa-caret-square-o-left:before {
+  content: "\f191";
+}
+.fa-dot-circle-o:before {
+  content: "\f192";
+}
+.fa-wheelchair:before {
+  content: "\f193";
+}
+.fa-vimeo-square:before {
+  content: "\f194";
+}
+.fa-turkish-lira:before,
+.fa-try:before {
+  content: "\f195";
+}
+.fa-plus-square-o:before {
+  content: "\f196";
+}
+.fa-space-shuttle:before {
+  content: "\f197";
+}
+.fa-slack:before {
+  content: "\f198";
+}
+.fa-envelope-square:before {
+  content: "\f199";
+}
+.fa-wordpress:before {
+  content: "\f19a";
+}
+.fa-openid:before {
+  content: "\f19b";
+}
+.fa-institution:before,
+.fa-bank:before,
+.fa-university:before {
+  content: "\f19c";
+}
+.fa-mortar-board:before,
+.fa-graduation-cap:before {
+  content: "\f19d";
+}
+.fa-yahoo:before {
+  content: "\f19e";
+}
+.fa-google:before {
+  content: "\f1a0";
+}
+.fa-reddit:before {
+  content: "\f1a1";
+}
+.fa-reddit-square:before {
+  content: "\f1a2";
+}
+.fa-stumbleupon-circle:before {
+  content: "\f1a3";
+}
+.fa-stumbleupon:before {
+  content: "\f1a4";
+}
+.fa-delicious:before {
+  content: "\f1a5";
+}
+.fa-digg:before {
+  content: "\f1a6";
+}
+.fa-pied-piper-pp:before {
+  content: "\f1a7";
+}
+.fa-pied-piper-alt:before {
+  content: "\f1a8";
+}
+.fa-drupal:before {
+  content: "\f1a9";
+}
+.fa-joomla:before {
+  content: "\f1aa";
+}
+.fa-language:before {
+  content: "\f1ab";
+}
+.fa-fax:before {
+  content: "\f1ac";
+}
+.fa-building:before {
+  content: "\f1ad";
+}
+.fa-child:before {
+  content: "\f1ae";
+}
+.fa-paw:before {
+  content: "\f1b0";
+}
+.fa-spoon:before {
+  content: "\f1b1";
+}
+.fa-cube:before {
+  content: "\f1b2";
+}
+.fa-cubes:before {
+  content: "\f1b3";
+}
+.fa-behance:before {
+  content: "\f1b4";
+}
+.fa-behance-square:before {
+  content: "\f1b5";
+}
+.fa-steam:before {
+  content: "\f1b6";
+}
+.fa-steam-square:before {
+  content: "\f1b7";
+}
+.fa-recycle:before {
+  content: "\f1b8";
+}
+.fa-automobile:before,
+.fa-car:before {
+  content: "\f1b9";
+}
+.fa-cab:before,
+.fa-taxi:before {
+  content: "\f1ba";
+}
+.fa-tree:before {
+  content: "\f1bb";
+}
+.fa-spotify:before {
+  content: "\f1bc";
+}
+.fa-deviantart:before {
+  content: "\f1bd";
+}
+.fa-soundcloud:before {
+  content: "\f1be";
+}
+.fa-database:before {
+  content: "\f1c0";
+}
+.fa-file-pdf-o:before {
+  content: "\f1c1";
+}
+.fa-file-word-o:before {
+  content: "\f1c2";
+}
+.fa-file-excel-o:before {
+  content: "\f1c3";
+}
+.fa-file-powerpoint-o:before {
+  content: "\f1c4";
+}
+.fa-file-photo-o:before,
+.fa-file-picture-o:before,
+.fa-file-image-o:before {
+  content: "\f1c5";
+}
+.fa-file-zip-o:before,
+.fa-file-archive-o:before {
+  content: "\f1c6";
+}
+.fa-file-sound-o:before,
+.fa-file-audio-o:before {
+  content: "\f1c7";
+}
+.fa-file-movie-o:before,
+.fa-file-video-o:before {
+  content: "\f1c8";
+}
+.fa-file-code-o:before {
+  content: "\f1c9";
+}
+.fa-vine:before {
+  content: "\f1ca";
+}
+.fa-codepen:before {
+  content: "\f1cb";
+}
+.fa-jsfiddle:before {
+  content: "\f1cc";
+}
+.fa-life-bouy:before,
+.fa-life-buoy:before,
+.fa-life-saver:before,
+.fa-support:before,
+.fa-life-ring:before {
+  content: "\f1cd";
+}
+.fa-circle-o-notch:before {
+  content: "\f1ce";
+}
+.fa-ra:before,
+.fa-resistance:before,
+.fa-rebel:before {
+  content: "\f1d0";
+}
+.fa-ge:before,
+.fa-empire:before {
+  content: "\f1d1";
+}
+.fa-git-square:before {
+  content: "\f1d2";
+}
+.fa-git:before {
+  content: "\f1d3";
+}
+.fa-y-combinator-square:before,
+.fa-yc-square:before,
+.fa-hacker-news:before {
+  content: "\f1d4";
+}
+.fa-tencent-weibo:before {
+  content: "\f1d5";
+}
+.fa-qq:before {
+  content: "\f1d6";
+}
+.fa-wechat:before,
+.fa-weixin:before {
+  content: "\f1d7";
+}
+.fa-send:before,
+.fa-paper-plane:before {
+  content: "\f1d8";
+}
+.fa-send-o:before,
+.fa-paper-plane-o:before {
+  content: "\f1d9";
+}
+.fa-history:before {
+  content: "\f1da";
+}
+.fa-circle-thin:before {
+  content: "\f1db";
+}
+.fa-header:before {
+  content: "\f1dc";
+}
+.fa-paragraph:before {
+  content: "\f1dd";
+}
+.fa-sliders:before {
+  content: "\f1de";
+}
+.fa-share-alt:before {
+  content: "\f1e0";
+}
+.fa-share-alt-square:before {
+  content: "\f1e1";
+}
+.fa-bomb:before {
+  content: "\f1e2";
+}
+.fa-soccer-ball-o:before,
+.fa-futbol-o:before {
+  content: "\f1e3";
+}
+.fa-tty:before {
+  content: "\f1e4";
+}
+.fa-binoculars:before {
+  content: "\f1e5";
+}
+.fa-plug:before {
+  content: "\f1e6";
+}
+.fa-slideshare:before {
+  content: "\f1e7";
+}
+.fa-twitch:before {
+  content: "\f1e8";
+}
+.fa-yelp:before {
+  content: "\f1e9";
+}
+.fa-newspaper-o:before {
+  content: "\f1ea";
+}
+.fa-wifi:before {
+  content: "\f1eb";
+}
+.fa-calculator:before {
+  content: "\f1ec";
+}
+.fa-paypal:before {
+  content: "\f1ed";
+}
+.fa-google-wallet:before {
+  content: "\f1ee";
+}
+.fa-cc-visa:before {
+  content: "\f1f0";
+}
+.fa-cc-mastercard:before {
+  content: "\f1f1";
+}
+.fa-cc-discover:before {
+  content: "\f1f2";
+}
+.fa-cc-amex:before {
+  content: "\f1f3";
+}
+.fa-cc-paypal:before {
+  content: "\f1f4";
+}
+.fa-cc-stripe:before {
+  content: "\f1f5";
+}
+.fa-bell-slash:before {
+  content: "\f1f6";
+}
+.fa-bell-slash-o:before {
+  content: "\f1f7";
+}
+.fa-trash:before {
+  content: "\f1f8";
+}
+.fa-copyright:before {
+  content: "\f1f9";
+}
+.fa-at:before {
+  content: "\f1fa";
+}
+.fa-eyedropper:before {
+  content: "\f1fb";
+}
+.fa-paint-brush:before {
+  content: "\f1fc";
+}
+.fa-birthday-cake:before {
+  content: "\f1fd";
+}
+.fa-area-chart:before {
+  content: "\f1fe";
+}
+.fa-pie-chart:before {
+  content: "\f200";
+}
+.fa-line-chart:before {
+  content: "\f201";
+}
+.fa-lastfm:before {
+  content: "\f202";
+}
+.fa-lastfm-square:before {
+  content: "\f203";
+}
+.fa-toggle-off:before {
+  content: "\f204";
+}
+.fa-toggle-on:before {
+  content: "\f205";
+}
+.fa-bicycle:before {
+  content: "\f206";
+}
+.fa-bus:before {
+  content: "\f207";
+}
+.fa-ioxhost:before {
+  content: "\f208";
+}
+.fa-angellist:before {
+  content: "\f209";
+}
+.fa-cc:before {
+  content: "\f20a";
+}
+.fa-shekel:before,
+.fa-sheqel:before,
+.fa-ils:before {
+  content: "\f20b";
+}
+.fa-meanpath:before {
+  content: "\f20c";
+}
+.fa-buysellads:before {
+  content: "\f20d";
+}
+.fa-connectdevelop:before {
+  content: "\f20e";
+}
+.fa-dashcube:before {
+  content: "\f210";
+}
+.fa-forumbee:before {
+  content: "\f211";
+}
+.fa-leanpub:before {
+  content: "\f212";
+}
+.fa-sellsy:before {
+  content: "\f213";
+}
+.fa-shirtsinbulk:before {
+  content: "\f214";
+}
+.fa-simplybuilt:before {
+  content: "\f215";
+}
+.fa-skyatlas:before {
+  content: "\f216";
+}
+.fa-cart-plus:before {
+  content: "\f217";
+}
+.fa-cart-arrow-down:before {
+  content: "\f218";
+}
+.fa-diamond:before {
+  content: "\f219";
+}
+.fa-ship:before {
+  content: "\f21a";
+}
+.fa-user-secret:before {
+  content: "\f21b";
+}
+.fa-motorcycle:before {
+  content: "\f21c";
+}
+.fa-street-view:before {
+  content: "\f21d";
+}
+.fa-heartbeat:before {
+  content: "\f21e";
+}
+.fa-venus:before {
+  content: "\f221";
+}
+.fa-mars:before {
+  content: "\f222";
+}
+.fa-mercury:before {
+  content: "\f223";
+}
+.fa-intersex:before,
+.fa-transgender:before {
+  content: "\f224";
+}
+.fa-transgender-alt:before {
+  content: "\f225";
+}
+.fa-venus-double:before {
+  content: "\f226";
+}
+.fa-mars-double:before {
+  content: "\f227";
+}
+.fa-venus-mars:before {
+  content: "\f228";
+}
+.fa-mars-stroke:before {
+  content: "\f229";
+}
+.fa-mars-stroke-v:before {
+  content: "\f22a";
+}
+.fa-mars-stroke-h:before {
+  content: "\f22b";
+}
+.fa-neuter:before {
+  content: "\f22c";
+}
+.fa-genderless:before {
+  content: "\f22d";
+}
+.fa-facebook-official:before {
+  content: "\f230";
+}
+.fa-pinterest-p:before {
+  content: "\f231";
+}
+.fa-whatsapp:before {
+  content: "\f232";
+}
+.fa-server:before {
+  content: "\f233";
+}
+.fa-user-plus:before {
+  content: "\f234";
+}
+.fa-user-times:before {
+  content: "\f235";
+}
+.fa-hotel:before,
+.fa-bed:before {
+  content: "\f236";
+}
+.fa-viacoin:before {
+  content: "\f237";
+}
+.fa-train:before {
+  content: "\f238";
+}
+.fa-subway:before {
+  content: "\f239";
+}
+.fa-medium:before {
+  content: "\f23a";
+}
+.fa-yc:before,
+.fa-y-combinator:before {
+  content: "\f23b";
+}
+.fa-optin-monster:before {
+  content: "\f23c";
+}
+.fa-opencart:before {
+  content: "\f23d";
+}
+.fa-expeditedssl:before {
+  content: "\f23e";
+}
+before,
+.fa-battery:before,
+.fa-battery-full:before {
+  content: "\f240";
+}
+before,
+.fa-battery-three-quarters:before {
+  content: "\f241";
+}
+before,
+.fa-battery-half:before {
+  content: "\f242";
+}
+before,
+.fa-battery-quarter:before {
+  content: "\f243";
+}
+before,
+.fa-battery-empty:before {
+  content: "\f244";
+}
+.fa-mouse-pointer:before {
+  content: "\f245";
+}
+.fa-i-cursor:before {
+  content: "\f246";
+}
+.fa-object-group:before {
+  content: "\f247";
+}
+.fa-object-ungroup:before {
+  content: "\f248";
+}
+.fa-sticky-note:before {
+  content: "\f249";
+}
+.fa-sticky-note-o:before {
+  content: "\f24a";
+}
+.fa-cc-jcb:before {
+  content: "\f24b";
+}
+.fa-cc-diners-club:before {
+  content: "\f24c";
+}
+.fa-clone:before {
+  content: "\f24d";
+}
+.fa-balance-scale:before {
+  content: "\f24e";
+}
+.fa-hourglass-o:before {
+  content: "\f250";
+}
+before,
+.fa-hourglass-start:before {
+  content: "\f251";
+}
+before,
+.fa-hourglass-half:before {
+  content: "\f252";
+}
+before,
+.fa-hourglass-end:before {
+  content: "\f253";
+}
+.fa-hourglass:before {
+  content: "\f254";
+}
+.fa-hand-grab-o:before,
+.fa-hand-rock-o:before {
+  content: "\f255";
+}
+.fa-hand-stop-o:before,
+.fa-hand-paper-o:before {
+  content: "\f256";
+}
+.fa-hand-scissors-o:before {
+  content: "\f257";
+}
+.fa-hand-lizard-o:before {
+  content: "\f258";
+}
+.fa-hand-spock-o:before {
+  content: "\f259";
+}
+.fa-hand-pointer-o:before {
+  content: "\f25a";
+}
+.fa-hand-peace-o:before {
+  content: "\f25b";
+}
+.fa-trademark:before {
+  content: "\f25c";
+}
+.fa-registered:before {
+  content: "\f25d";
+}
+.fa-creative-commons:before {
+  content: "\f25e";
+}
+.fa-gg:before {
+  content: "\f260";
+}
+.fa-gg-circle:before {
+  content: "\f261";
+}
+.fa-tripadvisor:before {
+  content: "\f262";
+}
+.fa-odnoklassniki:before {
+  content: "\f263";
+}
+.fa-odnoklassniki-square:before {
+  content: "\f264";
+}
+.fa-get-pocket:before {
+  content: "\f265";
+}
+.fa-wikipedia-w:before {
+  content: "\f266";
+}
+.fa-safari:before {
+  content: "\f267";
+}
+.fa-chrome:before {
+  content: "\f268";
+}
+.fa-firefox:before {
+  content: "\f269";
+}
+.fa-opera:before {
+  content: "\f26a";
+}
+.fa-internet-explorer:before {
+  content: "\f26b";
+}
+.fa-tv:before,
+.fa-television:before {
+  content: "\f26c";
+}
+.fa-contao:before {
+  content: "\f26d";
+}
+.fa-500px:before {
+  content: "\f26e";
+}
+.fa-amazon:before {
+  content: "\f270";
+}
+.fa-calendar-plus-o:before {
+  content: "\f271";
+}
+.fa-calendar-minus-o:before {
+  content: "\f272";
+}
+.fa-calendar-times-o:before {
+  content: "\f273";
+}
+.fa-calendar-check-o:before {
+  content: "\f274";
+}
+.fa-industry:before {
+  content: "\f275";
+}
+.fa-map-pin:before {
+  content: "\f276";
+}
+.fa-map-signs:before {
+  content: "\f277";
+}
+.fa-map-o:before {
+  content: "\f278";
+}
+.fa-map:before {
+  content: "\f279";
+}
+.fa-commenting:before {
+  content: "\f27a";
+}
+.fa-commenting-o:before {
+  content: "\f27b";
+}
+.fa-houzz:before {
+  content: "\f27c";
+}
+.fa-vimeo:before {
+  content: "\f27d";
+}
+.fa-black-tie:before {
+  content: "\f27e";
+}
+.fa-fonticons:before {
+  content: "\f280";
+}
+.fa-reddit-alien:before {
+  content: "\f281";
+}
+.fa-edge:before {
+  content: "\f282";
+}
+.fa-credit-card-alt:before {
+  content: "\f283";
+}
+.fa-codiepie:before {
+  content: "\f284";
+}
+.fa-modx:before {
+  content: "\f285";
+}
+.fa-fort-awesome:before {
+  content: "\f286";
+}
+.fa-usb:before {
+  content: "\f287";
+}
+.fa-product-hunt:before {
+  content: "\f288";
+}
+.fa-mixcloud:before {
+  content: "\f289";
+}
+.fa-scribd:before {
+  content: "\f28a";
+}
+.fa-pause-circle:before {
+  content: "\f28b";
+}
+.fa-pause-circle-o:before {
+  content: "\f28c";
+}
+.fa-stop-circle:before {
+  content: "\f28d";
+}
+.fa-stop-circle-o:before {
+  content: "\f28e";
+}
+.fa-shopping-bag:before {
+  content: "\f290";
+}
+.fa-shopping-basket:before {
+  content: "\f291";
+}
+.fa-hashtag:before {
+  content: "\f292";
+}
+.fa-bluetooth:before {
+  content: "\f293";
+}
+.fa-bluetooth-b:before {
+  content: "\f294";
+}
+.fa-percent:before {
+  content: "\f295";
+}
+.fa-gitlab:before {
+  content: "\f296";
+}
+.fa-wpbeginner:before {
+  content: "\f297";
+}
+.fa-wpforms:before {
+  content: "\f298";
+}
+.fa-envira:before {
+  content: "\f299";
+}
+.fa-universal-access:before {
+  content: "\f29a";
+}
+.fa-wheelchair-alt:before {
+  content: "\f29b";
+}
+.fa-question-circle-o:before {
+  content: "\f29c";
+}
+.fa-blind:before {
+  content: "\f29d";
+}
+.fa-audio-description:before {
+  content: "\f29e";
+}
+.fa-volume-control-phone:before {
+  content: "\f2a0";
+}
+.fa-braille:before {
+  content: "\f2a1";
+}
+.fa-assistive-listening-systems:before {
+  content: "\f2a2";
+}
+.fa-asl-interpreting:before,
+.fa-american-sign-language-interpreting:before {
+  content: "\f2a3";
+}
+.fa-deafness:before,
+.fa-hard-of-hearing:before,
+.fa-deaf:before {
+  content: "\f2a4";
+}
+.fa-glide:before {
+  content: "\f2a5";
+}
+.fa-glide-g:before {
+  content: "\f2a6";
+}
+.fa-signing:before,
+.fa-sign-language:before {
+  content: "\f2a7";
+}
+.fa-low-vision:before {
+  content: "\f2a8";
+}
+.fa-viadeo:before {
+  content: "\f2a9";
+}
+.fa-viadeo-square:before {
+  content: "\f2aa";
+}
+.fa-snapchat:before {
+  content: "\f2ab";
+}
+.fa-snapchat-ghost:before {
+  content: "\f2ac";
+}
+.fa-snapchat-square:before {
+  content: "\f2ad";
+}
+.fa-pied-piper:before {
+  content: "\f2ae";
+}
+.fa-first-order:before {
+  content: "\f2b0";
+}
+.fa-yoast:before {
+  content: "\f2b1";
+}
+.fa-themeisle:before {
+  content: "\f2b2";
+}
+.fa-google-plus-circle:before,
+.fa-google-plus-official:before {
+  content: "\f2b3";
+}
+.fa-fa:before,
+.fa-font-awesome:before {
+  content: "\f2b4";
+}
+.fa-handshake-o:before {
+  content: "\f2b5";
+}
+.fa-envelope-open:before {
+  content: "\f2b6";
+}
+.fa-envelope-open-o:before {
+  content: "\f2b7";
+}
+.fa-linode:before {
+  content: "\f2b8";
+}
+.fa-address-book:before {
+  content: "\f2b9";
+}
+.fa-address-book-o:before {
+  content: "\f2ba";
+}
+.fa-vcard:before,
+.fa-address-card:before {
+  content: "\f2bb";
+}
+.fa-vcard-o:before,
+.fa-address-card-o:before {
+  content: "\f2bc";
+}
+.fa-user-circle:before {
+  content: "\f2bd";
+}
+.fa-user-circle-o:before {
+  content: "\f2be";
+}
+.fa-user-o:before {
+  content: "\f2c0";
+}
+.fa-id-badge:before {
+  content: "\f2c1";
+}
+.fa-drivers-license:before,
+.fa-id-card:before {
+  content: "\f2c2";
+}
+.fa-drivers-license-o:before,
+.fa-id-card-o:before {
+  content: "\f2c3";
+}
+.fa-quora:before {
+  content: "\f2c4";
+}
+.fa-free-code-camp:before {
+  content: "\f2c5";
+}
+.fa-telegram:before {
+  content: "\f2c6";
+}
+before,
+.fa-thermometer:before,
+.fa-thermometer-full:before {
+  content: "\f2c7";
+}
+before,
+.fa-thermometer-three-quarters:before {
+  content: "\f2c8";
+}
+before,
+.fa-thermometer-half:before {
+  content: "\f2c9";
+}
+before,
+.fa-thermometer-quarter:before {
+  content: "\f2ca";
+}
+before,
+.fa-thermometer-empty:before {
+  content: "\f2cb";
+}
+.fa-shower:before {
+  content: "\f2cc";
+}
+.fa-bathtub:before,
+before,
+.fa-bath:before {
+  content: "\f2cd";
+}
+.fa-podcast:before {
+  content: "\f2ce";
+}
+.fa-window-maximize:before {
+  content: "\f2d0";
+}
+.fa-window-minimize:before {
+  content: "\f2d1";
+}
+.fa-window-restore:before {
+  content: "\f2d2";
+}
+.fa-times-rectangle:before,
+.fa-window-close:before {
+  content: "\f2d3";
+}
+.fa-times-rectangle-o:before,
+.fa-window-close-o:before {
+  content: "\f2d4";
+}
+.fa-bandcamp:before {
+  content: "\f2d5";
+}
+.fa-grav:before {
+  content: "\f2d6";
+}
+.fa-etsy:before {
+  content: "\f2d7";
+}
+.fa-imdb:before {
+  content: "\f2d8";
+}
+.fa-ravelry:before {
+  content: "\f2d9";
+}
+.fa-eercast:before {
+  content: "\f2da";
+}
+.fa-microchip:before {
+  content: "\f2db";
+}
+.fa-snowflake-o:before {
+  content: "\f2dc";
+}
+.fa-superpowers:before {
+  content: "\f2dd";
+}
+.fa-wpexplorer:before {
+  content: "\f2de";
+}
+.fa-meetup:before {
+  content: "\f2e0";
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+.sr-only-focusable:active,
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+}

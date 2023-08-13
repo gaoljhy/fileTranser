@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% load staticfiles %}
+
+{% block title %}文件管理 - 文件分组管理{% endblock %}
+
+{% block custome_css %}
+    <link rel="stylesheet" href=" {% static 'files/css/upload.css' %} ">
+{% endblock %}
+
+{% block content %}
+    <div class="content">
+        <p class="content-note1">已有文件分组<span class="content-note2"> (暂不支持多层文件分组,后需添加此功能)</span></p>
+        <div style="clear:both"></div>
+        <br/><br/>
+
+        {% comment %} 文件分组列表 {% endcomment %}
+        <table class="table-list">
+            <thead>
+                <tr>
+                    <th>分组序号</th>
+                    <th>文件分组名称</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for content in contents %}
+                    <tr>
+                        {% comment %} <td>{{ forloop.counter|add:start }}</td> {% endcomment %}
+                        
+                        <td >{{ content.filegroupno }}</td>
+                        <td>{{ content.filegroupname }}</td>
+                        {% comment %} {% if request.user.role == '3' and request.user.sub_role == '2' %}
+                            <td><a href="{% url 'files:secondcheck' content.id %}">{{ content.get_second_check_display }}</a></td>
+                        {% endif %} {% endcomment %}
+                        {% comment %} <td><a href="{% url 'files:download' content.id %}">Download</a></td> {% endcomment %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <form class="form-table" enctype="multipart/form-data" action="{% url 'files:filegroup' %}" method="post">
+            
+           
+            <div style="clear:both"></div>
+            <div class="form-list">
+                <label for="name">新建文件分组 (2 to 12 字符，必须填写项):</label>
+                <input type="text" id="text" value="分组名称" name="file_group" required minlength="2" maxlength="12" size="10">
+            </div>
+            {% if msg %}
+            <div class="error">{{ msg }}</div>
+            {% endif %}
+            <div class="form-list">
+                <input id="submit_upload" class="form-button" type="submit"/>
+            </div>
+            <div class="form-list">
+                 <button class="form-button" type="button" onclick="btn_cancel()">取消</button>
+            </div>
+            {% csrf_token %}
+        </form>
+    </div>
+{% endblock %}
+
+{% block custome_js %}
+    <script>
+        function btn_cancel() {
+            location.href = "{% url 'index' %}";
+        }
+
+        
+    </script>
+{% endblock %}
